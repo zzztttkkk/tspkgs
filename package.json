@@ -18,10 +18,14 @@
   },
   "homepage": "https://github.com/zzztttkkk/tspkgs#readme",
   "dependencies": {
+    "@typegoose/typegoose": "^11.5.0",
     "glob": "^10.3.4",
+    "luxon": "^3.4.2",
+    "mongoose": "^7.5.0",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
+    "@types/luxon": "^3.3.2",
     "@types/node": "^20.5.7"
   }
 }

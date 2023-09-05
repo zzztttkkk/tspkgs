@@ -1,4 +1,5 @@
-import {Stack} from "../internal/index.js";
+import {ismain, sleep, Stack} from "../internal/index.js";
+import console from "console";
 
 type Waiter = () => void;
 
@@ -36,4 +37,25 @@ export class Lock {
             this.release();
         }
     }
+}
+
+if (ismain(import.meta)) {
+    const lock = new Lock;
+
+    async function test_routine(idx: number) {
+        await lock.within(async () => {
+            await sleep(10);
+            console.log(idx, Date.now());
+        });
+    }
+
+    const ps = [] as Promise<void>[];
+
+    for (let i = 0; i < 100; i++) {
+        ps.push(test_routine(i));
+    }
+
+    await Promise.all(ps);
+
+    console.log(ismain(import.meta));
 }

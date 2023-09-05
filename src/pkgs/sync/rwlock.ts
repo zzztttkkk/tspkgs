@@ -1,6 +1,5 @@
 import {Lock} from "./lock.js";
-import {Stack} from "../internal/index.js";
-
+import {ismain, Stack} from "../internal/index.js";
 
 interface Waiter {
     w: boolean;
@@ -106,4 +105,7 @@ export class RwLock {
     async withinr<T, Args>(fn: (args?: Args) => Promise<T> | T, args?: Args): Promise<T> {
         return this.within(false, fn, args);
     }
+}
+
+if (ismain(import.meta)) {
 }
