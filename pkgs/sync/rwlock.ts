@@ -83,37 +83,40 @@ export class RwLock {
 	}
 
 	private async within<T, Args>(w: boolean, fn: (args?: Args) => Promise<T> | T, args?: Args): Promise<T> {
-		let handler: ReleaseHandler | undefined;
+		let release: ReleaseHandler | undefined;
 		try {
 			if (w) {
-				handler = await this.acquirew();
+				release = await this.acquirew();
 			} else {
-				handler = await this.acquirer();
+				release = await this.acquirer();
 			}
 			return (await fn(args));
 		} finally {
-			if (handler) {
-				await handler();
-			}
+			if (release) await release();
 		}
 	}
 
-	async withinw<T, Args>(fn: (args?: Args) => Promise<T> | T, args?: Args): Promise<T> {
-		return await this.within(true, fn, args);
+	withinw<T, Args>(fn: (args?: Args) => Promise<T> | T, args?: Args): Promise<T> {
+		return this.within(true, fn, args);
 	}
 
-	async withinr<T, Args>(fn: (args?: Args) => Promise<T> | T, args?: Args): Promise<T> {
-		return await this.within(false, fn, args);
+	withinr<T, Args>(fn: (args?: Args) => Promise<T> | T, args?: Args): Promise<T> {
+		return this.within(false, fn, args);
 	}
 }
 
 if (import.meta.main) {
 	const lock = new RwLock();
 
+	let c = 0;
+
 	async function test_routine(idx: number) {
-		await lock.withinr(async () => {
-			await sleep(10);
-			console.log(idx, Date.now());
+		await lock.withinw(async () => {
+			await sleep(Math.random() * 10);
+			if (c === 0) {
+				c += 1;
+			}
+			console.log("w", idx, c);
 		});
 	}
 

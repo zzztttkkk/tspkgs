@@ -7,8 +7,8 @@ import * as vldext from "./vld_exts.ts";
 export { fs, OnExit, Stack };
 
 export async function sleep(ms: number) {
-	await new Promise<void>((resolve) => {
-		setTimeout(resolve, ms);
+	return await new Promise<void>((resolve) => {
+		setTimeout(resolve, Math.floor(ms));
 	});
 }
 
