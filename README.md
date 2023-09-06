@@ -1,2 +1,0 @@
-# tspkgs
-my typescript packages

@@ -1,0 +1,26 @@
+{
+	"tasks": {},
+	"imports": {
+		"std/": "https://deno.land/std@0.201.0/",
+		"vld/": "https://deno.land/x/deno_class_validator@v1.0.0/",
+		"reflect/": "https://deno.land/x/reflect_metadata@v0.1.12/"
+	},
+	"nodeModulesDir": true,
+	"compilerOptions": {
+		"lib": ["deno.window"],
+		"strict": true,
+		"allowUnreachableCode": true,
+		"noImplicitAny": false,
+		"emitDecoratorMetadata": true
+	},
+	"lint": {
+		"rules": {
+			"exclude": ["no-inner-declarations", "no-explicit-any"]
+		}
+	},
+	"fmt": {
+		"useTabs": true,
+		"indentWidth": 4,
+		"lineWidth": 120
+	}
+}
