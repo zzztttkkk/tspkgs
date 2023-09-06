@@ -7,7 +7,6 @@ import { vld } from "../internal/mod.ts";
 Object.entries(await load()).forEach(([k, v]) => {
 	Deno.env.set(k, v);
 });
-
 export interface PropOptions {
 	optional?: boolean;
 	default?: any;
