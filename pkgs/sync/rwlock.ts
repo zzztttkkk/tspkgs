@@ -33,8 +33,9 @@ export class RwLock {
 				return;
 			}
 
+			this.writing = false;
 			this.readings++;
-			top.resolve;
+			top.resolve();
 		} finally {
 			this.lock.release();
 		}
@@ -111,11 +112,19 @@ if (import.meta.main) {
 	let c = 0;
 
 	async function test_routine(idx: number) {
+		await sleep(Math.random() * 20);
+
+		const rr = await lock.acquirer();
+		if (c !== 0) {
+			await rr();
+			console.log("r", idx, c);
+			return;
+		}
+		await rr();
+
 		await lock.withinw(async () => {
 			await sleep(Math.random() * 10);
-			if (c === 0) {
-				c += 1;
-			}
+			if (c === 0) c += 1;
 			console.log("w", idx, c);
 		});
 	}

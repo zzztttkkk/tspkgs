@@ -46,7 +46,7 @@ if (import.meta.main) {
 
 	async function test_routine(idx: number) {
 		await lock.within(async () => {
-			await sleep(10);
+			await sleep(Math.random() * 30);
 			console.log(idx, Date.now());
 		});
 	}
@@ -58,4 +58,6 @@ if (import.meta.main) {
 	}
 
 	await Promise.all(ps);
+
+	console.log(lock);
 }
