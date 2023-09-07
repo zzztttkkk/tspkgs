@@ -302,6 +302,7 @@
   },
   "npm": {
     "specifiers": {
+      "@typegoose/typegoose": "@typegoose/typegoose@11.5.0_mongoose@7.5.0",
       "@typegoose/typegoose@11.5.0": "@typegoose/typegoose@11.5.0_mongoose@7.5.0",
       "@types/luxon": "@types/luxon@3.3.2",
       "luxon": "luxon@3.4.3",
