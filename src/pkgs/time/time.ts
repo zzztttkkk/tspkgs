@@ -1,5 +1,6 @@
 import * as luxon from "luxon";
 import { ismain } from "../internal/index.js";
+import * as util from "util";
 
 export function Zone(offset: number): luxon.Zone {
 	return luxon.FixedOffsetZone.instance(offset * 60);
@@ -8,7 +9,7 @@ export function Zone(offset: number): luxon.Zone {
 export class Time {
 	public static DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS ZZZ";
 
-	private _utcms;
+	private _utcms: number;
 
 	constructor();
 	constructor(d: Date);
@@ -73,8 +74,20 @@ export class Time {
 		this._utcms -= duration.toMillis();
 		return this;
 	}
+
+	toString(): string {
+		return this.format();
+	}
+
+	[util.inspect.custom](): string {
+		return `Time {${this.format()}}`;
+	}
 }
 
 if (ismain(import.meta)) {
 	console.log(new Time().format());
 }
+
+(luxon.Duration as any).prototype[util.inspect.custom] = function (): string {
+	return `Duration {${(this as luxon.Duration).toHuman()}}`;
+};
