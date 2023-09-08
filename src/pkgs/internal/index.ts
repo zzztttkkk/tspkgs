@@ -2,8 +2,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
-import * as vldext from "./vld_ext.js";
+import * as vldext from "./vld.js";
 import * as vldcls from "class-validator";
+import "libphonenumber-js";
 
 export { Stack, Hole };
 

@@ -3,6 +3,6 @@ import * as fsutils from "./pkgs/fsutils/index.js";
 import * as env from "./pkgs/env/index.js";
 import * as time from "./pkgs/time/index.js";
 
-import { Hole, sleep } from "./pkgs/internal/index.js";
+import { Hole, sleep, vld } from "./pkgs/internal/index.js";
 
-export { sync, fsutils, Hole, sleep, env, time };
+export { sync, fsutils, Hole, sleep, env, time, vld };
