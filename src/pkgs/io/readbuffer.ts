@@ -1,6 +1,7 @@
-import { Socket, createServer } from "net";
+import { Socket, createConnection, createServer } from "net";
 import { Stack } from "../internal/stack.js";
 import { ismain } from "../internal/index.js";
+import { ReadStream } from "fs";
 
 interface BaseReadOptions {
 	timeout?: number;
@@ -16,11 +17,14 @@ export interface ReadUntilOptions extends BaseReadOptions {
 }
 
 export interface ReadLineOptions extends ReadUntilOptions {
-	keepEndl?: boolean;
+	removeEndl?: boolean;
+	endl?: Buffer; // default: `Buffer.from("\r\n")`
 }
 
 export const ReadTimeoutError = new Error(`read timeout`);
 export const ReachMaxSizeError = new Error(`reach max size`);
+
+const ENDL = Buffer.from("\r\n");
 
 class BufferChain {
 	private chain: Buffer[];
@@ -87,6 +91,11 @@ class BufferChain {
 	}
 }
 
+export interface BinaryReadStream {
+	on(event: "close", listener: () => void): this;
+	on(event: "data", listener: (chunk: Buffer) => void): this;
+	on(event: "error", listener: (err: Error) => void): this;
+}
 export class ReadBuffer {
 	private bufs: Stack<Buffer>;
 	private cursor: number;
@@ -100,15 +109,14 @@ export class ReadBuffer {
 		this.cursor = 0;
 	}
 
-	private onerr(v: any) {
+	private onerr(v?: any) {
 		this.error = v;
 		if (this.reject) this.reject(v);
 		if (this.buf_reject) this.buf_reject(v);
 	}
 
-	static from(sock: Socket): ReadBuffer;
-	static from(src: any): ReadBuffer {
-		if (src instanceof Socket) {
+	static from(src: BinaryReadStream): ReadBuffer {
+		if (src instanceof Socket || src instanceof File) {
 			const obj = new ReadBuffer();
 			src.on("data", (inb) => {
 				obj.bufs.push(inb);
@@ -230,7 +238,6 @@ export class ReadBuffer {
 				}
 
 				const buf = this.bufs.peek();
-
 				const idx = buf.indexOf(required, this.cursor);
 				if (idx < 0) {
 					tmps.write(buf, this.cursor, buf.length, true);
@@ -257,30 +264,16 @@ export class ReadBuffer {
 		});
 	}
 
-	readline(opts?: ReadLineOptions): Promise<Buffer> {
-		return this.readuntil(10, opts);
-	}
-}
+	async readline(opts?: ReadLineOptions): Promise<Buffer> {
+		const line = await this.readuntil(10, opts);
+		if (!!!opts?.removeEndl) return line;
 
-export async function* channel(rs: any): AsyncGenerator<Buffer> {
-	const bufs = [] as Buffer[];
-	let resolve: () => void;
-	let ps = new Promise<void>((res) => {
-		resolve = res;
-	});
+		const endl = opts?.endl || ENDL;
+		if (endl.length > line.length) return line;
 
-	rs.on("data", (v: Buffer) => {
-		bufs.push(v);
-		resolve();
-	});
-
-	while (true) {
-		await ps;
-		yield* bufs as any;
-		bufs.length = 0;
-		ps = new Promise<void>((res) => {
-			resolve = res;
-		});
+		const ends = line.subarray(line.length - endl.length, line.length);
+		if (ends.equals(endl)) return line.subarray(0, line.length - endl.length);
+		return line;
 	}
 }
 
@@ -289,13 +282,19 @@ if (ismain(import.meta)) {
 		const reader = ReadBuffer.from(sock);
 		while (true) {
 			try {
-				const v = await reader.readline();
-				console.log("line: ", v.toString());
-			} catch {
-				console.log(1212);
+				const v = await reader.readline({ removeEndl: true });
+				console.log("line: ", v.length);
+				process.exit(0);
+			} catch (e) {
+				console.log(e);
 				return;
 			}
 		}
+	});
+
+	const cli = createConnection(5000);
+	cli.on("connect", () => {
+		cli.write("a".repeat(10240) + "\r\n");
 	});
 	server.listen(5000);
 }

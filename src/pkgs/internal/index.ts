@@ -1,5 +1,5 @@
 import path from "path";
-import { fileURLToPath } from "url";
+import * as url from "url";
 import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
 import * as vldext from "./vld.js";
@@ -10,8 +10,16 @@ export { Stack, Hole };
 
 export function ismain(meta: ImportMeta): boolean {
 	return (
-		path.resolve(fileURLToPath(meta.url)) === path.resolve(process.argv[1])
+		path.resolve(url.fileURLToPath(meta.url)) === path.resolve(process.argv[1])
 	);
+}
+
+export function source(meta: ImportMeta): string {
+	return path.resolve(url.fileURLToPath(meta.url));
+}
+
+export function sourcedir(meta: ImportMeta): string {
+	return path.dirname(source(meta));
 }
 
 export function sleep(ms: number): Promise<void> {

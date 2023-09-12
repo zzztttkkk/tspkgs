@@ -35,6 +35,7 @@
 		"@swc/helpers": "^0.5.2",
 		"@typegoose/typegoose": "^11.5.0",
 		"class-validator": "^0.14.0",
+		"glob": "^10.3.4",
 		"libphonenumber-js": "^1.10.44",
 		"luxon": "^3.4.3",
 		"mongoose": "^7.5.0",
