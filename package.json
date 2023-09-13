@@ -1,6 +1,6 @@
 {
 	"name": "@ztkisalreadytaken/tspkgs",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "",
 	"type": "module",
 	"main": "lib/index.js",
@@ -11,7 +11,8 @@
 	],
 	"scripts": {
 		"dev": "rm -r --force ./build && npx swc -d ./build -w ./src",
-		"node": "node --experimental-import-meta-resolve"
+		"node": "node --experimental-import-meta-resolve",
+		"release": "pwsh -Command { rm -r --force ./lib } && npx tsc && npm publish --access public"
 	},
 	"repository": {
 		"type": "git",
