@@ -1,4 +1,4 @@
-import { lines } from "../fsutils/lines.js";
+import { lines } from "../io/lines.js";
 
 function parse_line(line: string, map: Map<string, string>) {
 	if (line.length < 1 || line.startsWith("//")) return;

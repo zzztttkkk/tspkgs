@@ -1,7 +1,6 @@
 import { Socket, createConnection, createServer } from "net";
 import { Stack } from "../internal/stack.js";
 import { ismain } from "../internal/index.js";
-import { ReadStream } from "fs";
 
 interface BaseReadOptions {
 	timeout?: number;

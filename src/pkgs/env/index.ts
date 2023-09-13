@@ -2,7 +2,7 @@ import { AllReflectInfos, type PropOptions, prop } from "./props.js";
 import * as process from "process";
 import { parse as load } from "./parse.js";
 import { ismain, vld } from "../internal/index.js";
-import { exists } from "../fsutils/index.js";
+import { exists } from "../io/index.js";
 
 export { prop };
 
