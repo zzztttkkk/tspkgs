@@ -1,4 +1,5 @@
 import { ismain } from "../internal/index.js";
+import * as crypto from "crypto";
 
 export function choice<T>(array: T[]): T {
 	if (array.length < 1) throw new Error(`empty array`);
@@ -6,14 +7,29 @@ export function choice<T>(array: T[]): T {
 }
 
 export interface RandStringOptions {
-	radix?: 16 | 36;
+	crypto?: boolean;
 }
 
-export function string(size: number, opts?: RandStringOptions): string {
-	const radix = opts?.radix || 36;
+export function string(
+	size: number,
+	opts?: RandStringOptions,
+): Promise<string> {
+	const radix = 36;
+	if (opts?.crypto) {
+		return new Promise<string>((res, rej) => {
+			crypto.randomBytes(size / 2 + 1, (e, buf) => {
+				if (e) {
+					rej(e);
+					return;
+				}
+				res(buf.toString("hex").slice(0, size));
+			});
+		});
+	}
+
 	const val = Math.random().toString(radix).slice(2);
 	if (val.length >= size) {
-		return val.slice(0, size);
+		return Promise.resolve(val.slice(0, size));
 	}
 
 	const buf = [val] as string[];
@@ -27,9 +43,9 @@ export function string(size: number, opts?: RandStringOptions): string {
 		buf.push(tmp);
 		size -= tmp.length;
 	}
-	return buf.join("");
+	return Promise.resolve(buf.join(""));
 }
 
 if (ismain(import.meta)) {
-	console.log(string(10, { radix: 16 }));
+	console.log(await string(7, { crypto: true }));
 }
