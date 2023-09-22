@@ -10,9 +10,9 @@
 		"lib/**/*.d.ts"
 	],
 	"scripts": {
-		"dev": "rm -r --force ./build && npx swc -d ./build -w ./src",
+		"dev": "pwsh -Command { rm -r -force -path ./build } && npx swc -d ./build -w ./src",
 		"node": "node --experimental-import-meta-resolve",
-		"release": "pwsh -Command { rm -r --force ./lib } && npx tsc && npm publish --access public"
+		"release": "pwsh -Command { rm -r -force -path ./lib } && npx tsc && npm publish --access public"
 	},
 	"repository": {
 		"type": "git",
