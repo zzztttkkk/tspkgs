@@ -14,7 +14,7 @@ interface Result {
 if (isMainThread) {
 	const worker = new TypedWorker<Params, Result>(source(import.meta));
 	for (let i = 0; i < 100; i++) {
-		worker.submit({ a: i, b: 4 }).then((v) => {
+		worker.exec({ a: i, b: 4 }).then((v) => {
 			console.log(`${i} + 4 = ${v.sum}`);
 		});
 	}

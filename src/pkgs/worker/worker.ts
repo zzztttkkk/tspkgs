@@ -39,7 +39,7 @@ export class TypedWorker<Input, Output> {
 		return this.idx;
 	}
 
-	submit(msg: Input): Promise<Output> {
+	exec(msg: Input): Promise<Output> {
 		return new Promise<Output>((res, rej) => {
 			const idx = this.nidx;
 			this.worker.postMessage({ idx: idx, data: msg } as Msg<Input>);
