@@ -1,6 +1,6 @@
 import { isMainThread, threadId } from "worker_threads";
 import { sleep, source } from "../internal/index.js";
-import { Work, TypedWorkerPool, WorkWithHooks } from "./worker.js";
+import { Work, TypedWorkerPool } from "./worker.js";
 
 interface Params {
 	a: number;
@@ -27,14 +27,14 @@ if (isMainThread) {
 
 	process.exit(0);
 } else {
-	WorkWithHooks<Params, Result>(async (params, hooks) => {
+	Work<Params, Result>(async (params, hooks) => {
 		let loop = true;
 
-		hooks.Canceled.then(() => {
+		hooks.OnCanceled(() => {
 			console.log("cancel");
 			loop = false;
 		});
-		hooks.Timeouted.then(() => {
+		hooks.OnTimeouted(() => {
 			console.log("timeout");
 			loop = false;
 		});

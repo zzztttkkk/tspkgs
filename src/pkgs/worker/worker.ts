@@ -1,3 +1,4 @@
+// -- https://github.com/zzztttkkk/tspkgs
 import { Worker, parentPort, threadId } from "worker_threads";
 
 interface Msg<T> {
@@ -121,6 +122,8 @@ export class TypedWorkerPool<Input, Output> {
 				this.exec = this.blanceExec.bind(this);
 				break;
 			}
+			default: {
+			}
 		}
 	}
 
@@ -136,31 +139,18 @@ export class TypedWorkerPool<Input, Output> {
 }
 
 export interface Hooks {
-	Canceled: Promise<void>;
-	Timeouted: Promise<void>;
+	OnCanceled: (cb: () => void) => void;
+	OnTimeouted: (cb: () => void) => void;
 }
 
 const threads = new Map<number, number>();
 
-export function Work<Input, Output>(
-	fn: (i: Input) => Promise<Output> | Output,
-) {
-	if (threads.has(threadId)) {
-		throw new Error(`Thread${threadId} is working`);
-	}
-	threads.set(threadId, 1);
-
-	parentPort!.on("message", async (msg: Msg<Input>) => {
-		try {
-			const obj = await fn(msg.data);
-			parentPort!.postMessage({ idx: msg.idx, data: obj } as Msg<Output>);
-		} catch (e) {
-			parentPort!.postMessage({ idx: msg.idx, err: e } as Msg<Output>);
-		}
-	});
+interface ICallbacks {
+	Timeout: null | (() => void);
+	Cancele: null | (() => void);
 }
 
-export function WorkWithHooks<Input, Output>(
+export function Work<Input, Output>(
 	fn: (i: Input, hooks: Hooks) => Promise<Output> | Output,
 ) {
 	if (threads.has(threadId)) {
@@ -168,48 +158,43 @@ export function WorkWithHooks<Input, Output>(
 	}
 	threads.set(threadId, 1);
 
-	const hooks = new Map<
-		bigint,
-		{ OnTimeout: () => void; OnCanceled: () => void }
-	>();
+	const hooksMap = new Map<bigint, ICallbacks>();
 
 	parentPort!.on("message", async (msg: Msg<Input>) => {
 		const idx = msg.idx;
 
 		if (msg.timeouted) {
-			const hs = hooks.get(idx);
-			if (hs) hs.OnTimeout();
+			const hs = hooksMap.get(idx);
+			if (hs && hs.Timeout) hs.Timeout();
 			return;
 		}
 
 		if (msg.canceled) {
-			const hs = hooks.get(idx);
-			if (hs) hs.OnCanceled();
+			const hs = hooksMap.get(idx);
+			if (hs && hs.Cancele) hs.Cancele();
 			return;
 		}
 
-		const hs = {} as any;
-		const ps = {
-			Timeouted: new Promise<void>((res) => {
-				hs.OnTimeout = res;
-			}),
-			Canceled: new Promise<void>((res) => {
-				hs.OnCanceled = res;
-			}),
+		const cbs: ICallbacks = {
+			Timeout: null,
+			Cancele: null,
 		};
-		hooks.set(idx, hs);
+		hooksMap.set(idx, cbs);
 
 		try {
-			const obj = await fn(msg.data, ps);
+			const obj = await fn(msg.data, {
+				OnTimeouted: (cb) => {
+					cbs.Timeout = cb;
+				},
+				OnCanceled: (cb) => {
+					cbs.Cancele = cb;
+				},
+			});
 			parentPort!.postMessage({ idx, data: obj } as Msg<Output>);
 		} catch (e) {
 			parentPort!.postMessage({ idx, err: e } as Msg<Output>);
 		} finally {
-			hooks.delete(idx);
-			try {
-				hs.OnTimeout();
-				hs.OnCanceled();
-			} catch {}
+			hooksMap.delete(idx);
 		}
 	});
 }
