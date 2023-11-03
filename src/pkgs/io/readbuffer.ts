@@ -1,6 +1,6 @@
 import { Socket, createConnection, createServer } from "net";
 import { Stack } from "../internal/stack.js";
-import { ismain } from "../internal/index.js";
+import { ismain, sleep } from "../internal/index.js";
 
 interface BaseReadOptions {
 	timeout?: number;
@@ -292,8 +292,10 @@ if (ismain(import.meta)) {
 	});
 
 	const cli = createConnection(5000);
-	cli.on("connect", () => {
-		cli.write("a".repeat(10240) + "\r\n");
+	cli.on("connect", async () => {
+		cli.write("a".repeat(10240) + "\r");
+		await sleep(3000);
+		cli.write("\n");
 	});
 	server.listen(5000);
 }
