@@ -16,16 +16,13 @@ export async function* lines(fp: string): AsyncGenerator<string, void> {
 		});
 	};
 
-	let waiting = false;
 	let ps = psmaker();
 	const tmp = [] as string[];
 
 	inf.on("line", (l) => {
 		tmp.push(l);
-		if (waiting) {
-			resolve();
-			ps = psmaker();
-		}
+		resolve();
+		ps = psmaker();
 	});
 
 	let closed = false;
@@ -39,7 +36,6 @@ export async function* lines(fp: string): AsyncGenerator<string, void> {
 			break;
 		}
 
-		waiting = true;
 		await ps;
 		yield* tmp as any;
 		tmp.length = 0;

@@ -4,3 +4,4 @@ lib
 .env
 /.vscode/restore-terminals.json
 /.idea
+/config.example.ini

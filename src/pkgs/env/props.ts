@@ -5,9 +5,11 @@ export interface PropOptions {
 	caseSensitive?: boolean;
 	optional?: boolean;
 	noTrimSpace?: boolean;
+
+	description?: string;
 }
 
-interface Info {
+export interface Info {
 	opts: PropOptions;
 	type: any;
 }
@@ -30,6 +32,6 @@ export function prop(opts?: PropOptions): PropertyDecorator {
 			infos = new Map();
 			AllReflectInfos.set(cls, infos);
 		}
-		infos.set(key, { opts: opts || {}, type: designType });
+		infos.set(key, {opts: opts || {}, type: designType});
 	};
 }
