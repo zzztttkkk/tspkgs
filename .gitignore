@@ -3,3 +3,4 @@ build
 lib
 .env
 /.vscode/restore-terminals.json
+/.idea
