@@ -1,4 +1,4 @@
-import { ismain } from "../internal/index.js";
+import {ismain} from "../internal/index.js";
 
 type RealDateT = Date;
 
@@ -11,8 +11,7 @@ export class FakeDate {
 	constructor(...args: any) {
 		if (args.length) {
 			// @ts-ignore
-			const real = new RealDate(...args);
-			this.raw = real;
+			this.raw = new RealDate(...args);
 		} else {
 			this.raw = new RealDate(RealDate.now() + g.diff);
 		}

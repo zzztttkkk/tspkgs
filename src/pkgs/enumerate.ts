@@ -1,3 +1,5 @@
+import {ismain} from "./internal/index.js";
+
 export async function* asyncenumerate<Y, R, N>(inner: AsyncGenerator<Y, R, N>): AsyncGenerator<[number, Y], R, N> {
 	let idx = 0;
 	while (true) {
@@ -20,5 +22,16 @@ export function* enumerate<Y, R, N>(inner: Generator<Y, R, N>): Generator<[numbe
 		}
 		yield [idx, value];
 		idx++;
+	}
+}
+
+
+if (ismain(import.meta)) {
+	function* lst<T>(v: T[]) {
+		yield* v;
+	}
+
+	for (const [idx, ele] of enumerate(lst(["a", "b", "c", "d"]))) {
+		console.log(idx, ele);
 	}
 }
