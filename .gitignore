@@ -3,5 +3,6 @@ build
 lib
 .env
 /.vscode/restore-terminals.json
+/.vscode/settings.json
 /.idea
 /config.example.ini
