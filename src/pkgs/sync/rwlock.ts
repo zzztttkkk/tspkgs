@@ -6,8 +6,6 @@ interface Waiter {
 	resolve: () => void;
 }
 
-type ReleaseHandler = () => Promise<void>;
-
 export class RwLock {
 	private readonly lock: Lock;
 	private writing = false;

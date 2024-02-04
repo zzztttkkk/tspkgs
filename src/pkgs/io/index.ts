@@ -1,13 +1,12 @@
-import { lines } from "./lines.js";
 import { content } from "./content.js";
 import * as fs from "fs";
 import * as path from "path";
-import { ReadBuffer } from "./readbuffer.js";
+import { Reader } from "./readbuffer.js";
 import * as glob from "glob";
 import * as url from "url";
-import { ismain, sleep, sourcedir } from "../internal/index.js";
+import { ismain, sourcedir } from "../internal/index.js";
 
-export { lines, content, ReadBuffer };
+export { content, Reader };
 
 export async function exists(fp: string): Promise<boolean> {
 	return new Promise<boolean>((res) => {

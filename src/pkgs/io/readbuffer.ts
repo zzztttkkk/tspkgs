@@ -95,7 +95,7 @@ export interface BinaryReadStream {
 	on(event: "data", listener: (chunk: Buffer) => void): this;
 	on(event: "error", listener: (err: Error) => void): this;
 }
-export class ReadBuffer {
+export class Reader {
 	private bufs: Stack<Buffer>;
 	private cursor: number;
 	private error?: any;
@@ -114,9 +114,9 @@ export class ReadBuffer {
 		if (this.buf_reject) this.buf_reject(v);
 	}
 
-	static from(src: BinaryReadStream): ReadBuffer {
+	static from(src: BinaryReadStream): Reader {
 		if (src instanceof Socket || src instanceof File) {
-			const obj = new ReadBuffer();
+			const obj = new Reader();
 			src.on("data", (inb) => {
 				obj.bufs.push(inb);
 				if (obj.buf_resolve) obj.buf_resolve();
@@ -278,7 +278,7 @@ export class ReadBuffer {
 
 if (ismain(import.meta)) {
 	const server = createServer(async (sock) => {
-		const reader = ReadBuffer.from(sock);
+		const reader = Reader.from(sock);
 		while (true) {
 			try {
 				const v = await reader.readline({ removeEndl: true });

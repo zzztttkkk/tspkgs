@@ -1,11 +1,11 @@
-import {AllReflectInfos, type PropOptions, prop, Info} from "./props.js";
+import { AllReflectInfos, type PropOptions, prop, Info } from "./props.js";
 import * as process from "process";
-import {parse as load} from "./parse.js";
-import {ismain, vld} from "../internal/index.js";
-import {exists} from "../io/index.js";
+import { parse as load } from "./parse.js";
+import { ismain } from "../internal/index.js";
+import { exists } from "../io/index.js";
 import fs from "fs";
 
-export {prop};
+export { prop };
 
 const InstanceCache = new Map<any, any>();
 
@@ -100,14 +100,6 @@ export async function Get<T>(cls: new () => T): Promise<T> {
 		ins[k] = fv;
 	}
 
-	const es = await vld.validate(ins);
-	if (es && es.length > 0) {
-		throw new Error(
-			`[EnvClass ${cls!.name} Validate Errors]: {${es.map(
-				(v) => `${v.property}(${Object.keys(v.constraints || {})})`,
-			)}}`,
-		);
-	}
 	InstanceCache.set(cls.prototype, ins);
 	return ins;
 }
@@ -192,31 +184,29 @@ export async function GenerateExampleIni<T>(cls: new () => T, fp: string) {
 			}
 			resolve();
 		});
-	})
+	});
 }
 
 if (ismain(import.meta)) {
 	class Config {
-		@prop({description: "enable debug"})
+		@prop({ description: "enable debug" })
 		debug!: boolean;
 
 		@prop()
-		@vld.IsIP()
 		host!: string;
 
 		@prop()
-		@vld.IsInt()
 		port!: number;
 
 		@prop()
 		vp!: number;
 
-		@prop({optional: true})
+		@prop({ optional: true })
 		cp?: number;
 
-		@prop({optional: true})
+		@prop({ optional: true })
 		x?: boolean;
 	}
 
-	await GenerateExampleIni(Config, "./config.example.ini")
+	await GenerateExampleIni(Config, "./config.example.ini");
 }

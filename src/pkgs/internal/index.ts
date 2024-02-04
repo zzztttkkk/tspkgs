@@ -2,9 +2,6 @@ import path from "path";
 import * as url from "url";
 import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
-import * as vldext from "./vld.js";
-import * as vldcls from "class-validator";
-import "libphonenumber-js";
 
 export { Stack, Hole };
 
@@ -27,8 +24,3 @@ export function sleep(ms: number): Promise<void> {
 		setTimeout(resolve, Math.ceil(ms));
 	});
 }
-
-export const vld = {
-	...vldcls,
-	...vldext,
-};
