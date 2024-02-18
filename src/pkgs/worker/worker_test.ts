@@ -1,6 +1,7 @@
 import { isMainThread, threadId } from "worker_threads";
-import { sleep, source } from "../internal/index.js";
+import { source } from "../internal/index.js";
 import { Work, TypedWorkerPool } from "./worker.js";
+import { cpus } from "os";
 
 interface Params {
 	a: number;
@@ -13,35 +14,29 @@ interface Result {
 }
 
 if (isMainThread) {
-	const pool = new TypedWorkerPool<Params, Result>(10, source(import.meta));
+	const pool = new TypedWorkerPool<Params, Result>(
+		cpus().length,
+		source(import.meta),
+	);
+	const ps = [] as Promise<any>[];
 	for (let i = 0; i < 100; i++) {
-		pool
-			.exec({ a: i, b: 4 }, { Timeout: 100 })
-			.then((v) => {
+		ps.push(
+			pool.exec({ a: i, b: 4 }, {}).then((v) => {
 				console.log(`${i} + 4 = ${v.sum}, @ ${v.tid}`);
-			})
-			.catch((e) => {});
+			}),
+		);
 	}
 
-	await sleep(1000);
-
+	await Promise.all(ps);
 	process.exit(0);
 } else {
 	Work<Params, Result>(async (params, hooks) => {
-		let loop = true;
-
 		hooks.OnCanceled(() => {
 			console.log("cancel");
-			loop = false;
 		});
 		hooks.OnTimeouted(() => {
 			console.log("timeout");
-			loop = false;
 		});
-
-		while (loop) {
-			await sleep(Math.random() * 3000);
-		}
 		return { sum: params.a + params.b, tid: threadId };
 	});
 }
