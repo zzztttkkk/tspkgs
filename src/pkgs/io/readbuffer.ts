@@ -95,6 +95,8 @@ export interface BinaryReadStream {
 	on(event: "data", listener: (chunk: Buffer) => void): this;
 	on(event: "error", listener: (err: Error) => void): this;
 }
+
+// todo use stream interface
 export class Reader {
 	private bufs: Stack<Buffer>;
 	private cursor: number;

@@ -24,6 +24,6 @@ export function content(
 }
 
 if (ismain(import.meta)) {
-	const fc = await content("./package.json");
+	const fc = await content("./package.json", "utf-8");
 	console.log(fc);
 }

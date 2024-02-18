@@ -1,4 +1,5 @@
-import { lines } from "../io/lines.js";
+import { lines } from "../io/index.js";
+import fs from "fs/promises";
 
 function parse_line(line: string, map: Map<string, string>) {
 	if (line.length < 1 || line.startsWith("//")) return;
@@ -19,9 +20,17 @@ function parse_line(line: string, map: Map<string, string>) {
 }
 
 export async function parse(fp: string): Promise<Map<string, string>> {
-	const m = new Map<string, string>();
-	for await (const line of lines(fp)) {
-		parse_line(line, m);
+	const fd = await fs.open(fp);
+	const rs = fd.createReadStream({ encoding: "utf8", autoClose: false });
+
+	try {
+		const m = new Map<string, string>();
+		for await (const line of lines(rs)) {
+			parse_line(line, m);
+		}
+		return m;
+	} finally {
+		rs.destroy();
+		fd.close();
 	}
-	return m;
 }

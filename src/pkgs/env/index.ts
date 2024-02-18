@@ -3,7 +3,7 @@ import * as process from "process";
 import { parse as load } from "./parse.js";
 import { ismain } from "../internal/index.js";
 import { exists } from "../io/index.js";
-import fs from "fs";
+import fs from "fs/promises";
 
 export { prop };
 
@@ -51,6 +51,7 @@ const TRUTHES = ["true", "t", "T", "True", "TRUE", "ok", "yes", "1"];
 if (await exists(".env")) {
 	await load(".env");
 }
+
 if (await exists(".env.local")) {
 	await load(".env.local");
 }
@@ -175,38 +176,5 @@ export async function GenerateExampleIni<T>(cls: new () => T, fp: string) {
 	}
 
 	const content = lines.join("\n");
-
-	return new Promise<void>((resolve, reject) => {
-		fs.writeFile(fp, content, (err) => {
-			if (err) {
-				reject(err);
-				return;
-			}
-			resolve();
-		});
-	});
-}
-
-if (ismain(import.meta)) {
-	class Config {
-		@prop({ description: "enable debug" })
-		debug!: boolean;
-
-		@prop()
-		host!: string;
-
-		@prop()
-		port!: number;
-
-		@prop()
-		vp!: number;
-
-		@prop({ optional: true })
-		cp?: number;
-
-		@prop({ optional: true })
-		x?: boolean;
-	}
-
-	await GenerateExampleIni(Config, "./config.example.ini");
+	await fs.writeFile(fp, content);
 }
