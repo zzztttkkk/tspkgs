@@ -6,3 +6,4 @@ lib
 /.vscode/settings.json
 /.idea
 /config.example.ini
+/tsconfig.tsbuildinfo
