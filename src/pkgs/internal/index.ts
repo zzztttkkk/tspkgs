@@ -1,5 +1,5 @@
 import path from "path";
-import * as url from "url";
+import url from "url";
 import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
 
