@@ -1,7 +1,6 @@
 import { AllReflectInfos, type PropOptions, prop, Info } from "./props.js";
 import * as process from "process";
 import { parse as load } from "./parse.js";
-import { ismain } from "../internal/index.js";
 import { exists } from "../io/index.js";
 import fs from "fs/promises";
 
