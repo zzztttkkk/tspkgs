@@ -1,7 +1,7 @@
 import { Worker, parentPort, threadId } from "worker_threads";
 
 interface Msg<T> {
-	idx: bigint;
+	id: bigint;
 	data: T;
 	err?: Error;
 	canceled?: boolean;
@@ -11,6 +11,7 @@ interface Msg<T> {
 interface Waiter<T> {
 	resolve: (v: T) => void;
 	reject: (e: Error) => void;
+	timeoutHandle?: NodeJS.Timeout;
 }
 
 interface ExecOptions {
@@ -33,43 +34,60 @@ export class TypedWorker<Input, Output> {
 		this.waiters = new Map();
 		this.worker = new Worker(file);
 		this.worker.on("message", (msg: Msg<Output>) => {
-			const ps = this.waiters.get(msg.idx);
-			if (!ps) return;
+			const waiter = this.waiters.get(msg.id);
+			if (!waiter) return;
 
-			this.waiters.delete(msg.idx);
+			clearTimeout(waiter.timeoutHandle);
+			this.waiters.delete(msg.id);
 
 			if (msg.err != null) {
-				ps.reject(msg.err);
+				waiter.reject(msg.err);
 			} else {
-				ps.resolve(msg.data);
+				waiter.resolve(msg.data);
 			}
 		});
 	}
 
-	private get nidx(): bigint {
+	private get nid(): bigint {
 		this.idx++;
 		return this.idx;
 	}
 
+	private makeTimeoutFunc(idx: bigint): () => void {
+		return () => {
+			const waiter = this.waiters.get(idx);
+			if (!waiter) return;
+
+			this.waiters.delete(idx);
+
+			this.worker.postMessage({
+				id: idx,
+				timeouted: true,
+			} as Msg<Input>);
+
+			waiter.reject(Errors.Timeouted);
+		};
+	}
+
 	exec(msg: Input, opts?: ExecOptions): Promise<Output> {
 		return new Promise<Output>((res, rej) => {
-			const idx = this.nidx;
-			this.worker.postMessage({ idx: idx, data: msg } as Msg<Input>);
-			this.waiters.set(idx, { reject: rej, resolve: res });
+			const msgId = this.nid;
+			this.worker.postMessage({ id: msgId, data: msg } as Msg<Input>);
+
+			const waiter: Waiter<Output> = { reject: rej, resolve: res };
+
+			this.waiters.set(msgId, waiter);
 
 			if (opts) {
 				if (opts.GetIdx) {
-					opts.GetIdx(idx);
+					opts.GetIdx(msgId);
 				}
 				if (opts.Timeout && opts.Timeout > 0) {
-					setTimeout(() => {
-						this.worker.postMessage({
-							idx: idx,
-							timeouted: true,
-						} as Msg<Input>);
-						this.waiters.delete(idx);
-						rej(Errors.Timeouted);
-					}, opts.Timeout);
+					if (opts.Timeout < 300) opts.Timeout = 300;
+					waiter.timeoutHandle = setTimeout(
+						this.makeTimeoutFunc(msgId),
+						opts.Timeout,
+					);
 				}
 			}
 		});
@@ -79,7 +97,7 @@ export class TypedWorker<Input, Output> {
 		const fns = this.waiters.get(idx);
 		if (!fns) return;
 		this.worker.postMessage({
-			idx: idx,
+			id: idx,
 			canceled: true,
 		} as Msg<Input>);
 		fns.reject(Errors.Canceled);
@@ -142,7 +160,7 @@ export interface Hooks {
 	OnTimeouted: (cb: () => void) => void;
 }
 
-const threads = new Map<number, number>();
+const threads = new Set<number>();
 
 interface ICallbacks {
 	Timeout: null | (() => void);
@@ -155,21 +173,21 @@ export function Work<Input, Output>(
 	if (threads.has(threadId)) {
 		throw new Error(`Thread${threadId} is working`);
 	}
-	threads.set(threadId, 1);
+	threads.add(threadId);
 
 	const hooksMap = new Map<bigint, ICallbacks>();
 
 	parentPort!.on("message", async (msg: Msg<Input>) => {
-		const idx = msg.idx;
+		const msgId = msg.id;
 
 		if (msg.timeouted) {
-			const hs = hooksMap.get(idx);
+			const hs = hooksMap.get(msgId);
 			if (hs && hs.Timeout) hs.Timeout();
 			return;
 		}
 
 		if (msg.canceled) {
-			const hs = hooksMap.get(idx);
+			const hs = hooksMap.get(msgId);
 			if (hs && hs.Cancele) hs.Cancele();
 			return;
 		}
@@ -178,10 +196,10 @@ export function Work<Input, Output>(
 			Timeout: null,
 			Cancele: null,
 		};
-		hooksMap.set(idx, cbs);
+		hooksMap.set(msgId, cbs);
 
 		try {
-			const obj = await fn(msg.data, {
+			const result = await fn(msg.data, {
 				OnTimeouted: (cb) => {
 					cbs.Timeout = cb;
 				},
@@ -189,11 +207,11 @@ export function Work<Input, Output>(
 					cbs.Cancele = cb;
 				},
 			});
-			parentPort!.postMessage({ idx, data: obj } as Msg<Output>);
+			parentPort!.postMessage({ id: msgId, data: result } as Msg<Output>);
 		} catch (e) {
-			parentPort!.postMessage({ idx, err: e } as Msg<Output>);
+			parentPort!.postMessage({ id: msgId, err: e } as Msg<Output>);
 		} finally {
-			hooksMap.delete(idx);
+			hooksMap.delete(msgId);
 		}
 	});
 }

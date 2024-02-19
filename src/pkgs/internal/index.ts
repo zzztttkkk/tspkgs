@@ -54,3 +54,38 @@ export function UniqueId(v: object): BigInt {
 		}
 	}
 }
+
+export class TraceObject {
+	#name: string;
+
+	constructor(name: string) {
+		this.#name = name;
+	}
+
+	[inspect.custom]() {
+		const stack = new Error().stack;
+		let line: string | undefined;
+		if (stack) {
+			const lines = stack.split("\n").map((v) => v.trim());
+			let idx = 0;
+			for (; idx < lines.length; idx++) {
+				const v = lines[idx];
+				if (v.startsWith(`at console.log`)) {
+					break;
+				}
+			}
+
+			line = lines[idx + 1];
+		}
+		line = line || "";
+		if (line.startsWith("at ")) line = line.substring(3);
+		return `[ Trace ${this.#name} ${Date.now()} @ \`${line}\` ]`;
+	}
+
+	static readonly A = new TraceObject("A");
+	static readonly B = new TraceObject("B");
+	static readonly C = new TraceObject("C");
+	static readonly D = new TraceObject("D");
+	static readonly E = new TraceObject("E");
+	static readonly F = new TraceObject("F");
+}

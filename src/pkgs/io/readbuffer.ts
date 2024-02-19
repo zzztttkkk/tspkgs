@@ -1,6 +1,6 @@
-import { Socket, createConnection, createServer } from "net";
+import { createConnection, createServer } from "net";
 import { Stack } from "../internal/stack.js";
-import { ismain, sleep } from "../internal/index.js";
+import { TraceObject, ismain, sleep } from "../internal/index.js";
 
 interface BaseReadOptions {
 	timeout?: number;
@@ -16,7 +16,7 @@ export interface ReadUntilOptions extends BaseReadOptions {
 }
 
 export interface ReadLineOptions extends ReadUntilOptions {
-	removeEndl?: boolean;
+	noendl?: boolean;
 	endl?: Buffer; // default: `Buffer.from("\r\n")`
 }
 
@@ -24,6 +24,11 @@ export const ReadTimeoutError = new Error(`read timeout`);
 export const ReachMaxSizeError = new Error(`reach max size`);
 
 const ENDL = Buffer.from("\r\n");
+
+export const Errors = {
+	Eof: new Error(`Eof`),
+	Closed: new Error(`Closed`),
+};
 
 class BufferChain {
 	private chain: Buffer[];
@@ -90,14 +95,11 @@ class BufferChain {
 	}
 }
 
-export interface BinaryReadStream {
-	on(event: "close", listener: () => void): this;
-	on(event: "data", listener: (chunk: Buffer) => void): this;
-	on(event: "error", listener: (err: Error) => void): this;
-}
+const MAX_BUF_STACK_DEPTH = 5;
 
-// todo use stream interface
 export class Reader {
+	private src: NodeJS.ReadableStream;
+
 	private bufs: Stack<Buffer>;
 	private cursor: number;
 	private error?: any;
@@ -105,29 +107,30 @@ export class Reader {
 	private buf_resolve?: () => void;
 	private buf_reject?: (e: any) => void;
 
-	private constructor() {
+	constructor(src: NodeJS.ReadableStream) {
+		this.src = src;
 		this.bufs = new Stack();
 		this.cursor = 0;
+
+		this.init();
+	}
+
+	private init() {
+		this.src.on("data", (buf: Buffer) => {
+			this.bufs.push(buf);
+			if (this.buf_resolve) this.buf_resolve();
+			if (this.bufs.depth >= MAX_BUF_STACK_DEPTH) {
+				this.src.pause();
+			}
+		});
+		this.src.on("end", () => this.onerr(Errors.Eof));
+		this.src.on("close", () => this.onerr(Errors.Closed));
 	}
 
 	private onerr(v?: any) {
 		this.error = v;
 		if (this.reject) this.reject(v);
 		if (this.buf_reject) this.buf_reject(v);
-	}
-
-	static from(src: BinaryReadStream): Reader {
-		if (src instanceof Socket || src instanceof File) {
-			const obj = new Reader();
-			src.on("data", (inb) => {
-				obj.bufs.push(inb);
-				if (obj.buf_resolve) obj.buf_resolve();
-			});
-			src.on("close", obj.onerr.bind(obj));
-			src.on("error", obj.onerr.bind(obj));
-			return obj;
-		}
-		throw new Error();
 	}
 
 	read(n: number, opts?: ReadOptions): Promise<Buffer> {
@@ -143,12 +146,11 @@ export class Reader {
 			let buf_reject: ((v: any) => void) | undefined;
 			if (opts && opts.timeout) {
 				timeout = setTimeout(() => {
-					reject(ReadTimeoutError);
-					if (buf_reject) {
-						buf_reject(ReadTimeoutError);
-					}
 					timeouted = true;
 					this.error = ReadTimeoutError;
+
+					if (buf_reject) buf_reject(ReadTimeoutError);
+					reject(ReadTimeoutError);
 				}, opts.timeout);
 			}
 
@@ -161,11 +163,18 @@ export class Reader {
 				}
 
 				if (this.bufs.empty()) {
+					if (this.src.isPaused()) this.src.resume();
+
 					const bufp = new Promise<void>((bufres, bufrej) => {
 						this.buf_resolve = bufres;
 						buf_reject = bufrej;
-					}).catch(() => {});
-					await bufp;
+					});
+
+					try {
+						await bufp;
+					} catch {
+						return;
+					}
 					if (timeouted) return;
 				}
 
@@ -194,12 +203,17 @@ export class Reader {
 		});
 	}
 
-	readuntil(required: number, opts?: ReadUntilOptions): Promise<Buffer> {
+	readuntil(
+		required: number | string | Buffer,
+		opts?: ReadUntilOptions,
+	): Promise<Buffer> {
 		return new Promise<Buffer>(async (resolve, reject) => {
 			if (this.error) {
 				reject(this.error);
 				return;
 			}
+
+			console.log(TraceObject.A);
 
 			this.reject = reject;
 			let timeout: NodeJS.Timeout | undefined;
@@ -233,8 +247,13 @@ export class Reader {
 					const bufp = new Promise<void>((bufres, bufrej) => {
 						this.buf_resolve = bufres;
 						buf_reject = bufrej;
-					}).catch(() => {});
-					await bufp;
+					});
+
+					try {
+						await bufp;
+					} catch {
+						return;
+					}
 					if (timeouted) return;
 				}
 
@@ -267,7 +286,7 @@ export class Reader {
 
 	async readline(opts?: ReadLineOptions): Promise<Buffer> {
 		const line = await this.readuntil(10, opts);
-		if (!!!opts?.removeEndl) return line;
+		if (!!!opts?.noendl) return line;
 
 		const endl = opts?.endl || ENDL;
 		if (endl.length > line.length) return line;
@@ -280,15 +299,15 @@ export class Reader {
 
 if (ismain(import.meta)) {
 	const server = createServer(async (sock) => {
-		const reader = Reader.from(sock);
+		const reader = new Reader(sock);
 		while (true) {
 			try {
-				const v = await reader.readline({ removeEndl: true });
+				const v = await reader.readline({ noendl: true, timeout: 100 });
 				console.log("line: ", v.length);
 				process.exit(0);
 			} catch (e) {
 				console.log(e);
-				return;
+				process.exit(0);
 			}
 		}
 	});

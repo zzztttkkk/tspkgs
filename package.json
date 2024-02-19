@@ -31,6 +31,7 @@
 		"chokidar": "^3.5.3",
 		"prettier": "3.0.3",
 		"rimraf": "^5.0.5",
+		"source-map": "^0.7.4",
 		"typescript": "5.3.3"
 	},
 	"dependencies": {
