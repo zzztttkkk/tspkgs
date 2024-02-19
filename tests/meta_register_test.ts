@@ -1,3 +1,4 @@
+import { UniqueId } from "../src/index.js";
 import {
 	MetaRegister,
 	metainfo,
@@ -33,3 +34,5 @@ if (props) {
 		console.log(name, info);
 	}
 }
+
+console.log(UniqueId(meta), UniqueId(props));

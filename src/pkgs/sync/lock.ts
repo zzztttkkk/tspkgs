@@ -1,24 +1,42 @@
+import { inspect } from "util";
 import { ismain, sleep } from "../internal/index.js";
 import { Stack } from "../internal/stack.js";
 
 type Waiter = () => void;
 
+class LockHandle implements Disposable {
+	private readonly release: () => void;
+
+	constructor(release: () => void) {
+		this.release = release;
+	}
+
+	[Symbol.dispose](): void {
+		this.release();
+	}
+
+	[inspect.custom]() {
+		return `[LockHandle]`;
+	}
+}
+
 export class Lock {
 	private locked = false;
 	private readonly waiters: Stack<Waiter>;
+	private readonly handle: LockHandle;
 
 	constructor() {
 		this.waiters = new Stack();
+		this.handle = new LockHandle(this.release.bind(this));
 	}
 
 	async acquire() {
 		if (this.locked) {
-			await new Promise<void>((resolve) => {
-				this.waiters.push(resolve);
-			});
-			return;
+			await new Promise<void>((resolve) => this.waiters.push(resolve));
+			return this.handle;
 		}
 		this.locked = true;
+		return this.handle;
 	}
 
 	release() {
@@ -29,16 +47,8 @@ export class Lock {
 		this.waiters.pop()();
 	}
 
-	async within<T, Args>(
-		fn: (args?: Args) => Promise<T> | T,
-		args?: Args,
-	): Promise<T> {
-		try {
-			await this.acquire();
-			return await fn(args);
-		} finally {
-			this.release();
-		}
+	[inspect.custom]() {
+		return `[Lock locked: ${this.locked}, waiters: ${this.waiters.depth}]`;
 	}
 }
 
@@ -46,10 +56,10 @@ if (ismain(import.meta)) {
 	const lock = new Lock();
 
 	async function test_routine(idx: number) {
-		await lock.within(async () => {
-			await sleep(Math.random() * 30);
-			console.log(idx, Date.now());
-		});
+		using _ = await lock.acquire();
+
+		await sleep(Math.random() * 10);
+		console.log(idx, Date.now(), lock);
 	}
 
 	const ps = [] as Array<Promise<void>>;

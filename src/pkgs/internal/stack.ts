@@ -12,6 +12,10 @@ export class Stack<T> {
 	private _tail?: Node<T>;
 	private _depth = 0;
 
+	get depth(): number {
+		return this._depth;
+	}
+
 	empty(): boolean {
 		return this._depth == 0;
 	}

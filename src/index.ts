@@ -3,7 +3,20 @@ import * as io from "./pkgs/io/index.js";
 import * as env from "./pkgs/env/index.js";
 import * as luxon from "luxon";
 
-import { Hole, sleep, ismain } from "./pkgs/internal/index.js";
+luxon.Settings.throwOnInvalid = true;
+
+import { Hole, sleep, ismain, UniqueId } from "./pkgs/internal/index.js";
 import { TypedWorker, Work } from "./pkgs/worker/worker.js";
 
-export { sync, io, Hole, sleep, env, luxon, ismain, TypedWorker, Work };
+export {
+	sync,
+	io,
+	Hole,
+	sleep,
+	env,
+	luxon,
+	ismain,
+	UniqueId,
+	TypedWorker,
+	Work,
+};
