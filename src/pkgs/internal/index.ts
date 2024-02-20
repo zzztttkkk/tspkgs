@@ -3,8 +3,9 @@ import url from "url";
 import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
 import { inspect } from "util";
+import * as __ from "./__/index.js";
 
-export { Stack, Hole };
+export { Stack, Hole, __ };
 
 export function ismain(meta: ImportMeta): boolean {
 	return (

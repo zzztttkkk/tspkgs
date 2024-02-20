@@ -2,13 +2,16 @@ import * as sync from "./pkgs/sync/index.js";
 import * as io from "./pkgs/io/index.js";
 import * as env from "./pkgs/env/index.js";
 import * as luxon from "luxon";
+import * as args from "./pkgs/args/index.js";
 
 luxon.Settings.throwOnInvalid = true;
 
-import { Hole, sleep, ismain, UniqueId } from "./pkgs/internal/index.js";
+import { Hole, sleep, ismain, UniqueId, __ } from "./pkgs/internal/index.js";
 import { TypedWorker, Work } from "./pkgs/worker/worker.js";
 
 export {
+	__,
+	args,
 	sync,
 	io,
 	Hole,
@@ -19,4 +22,14 @@ export {
 	UniqueId,
 	TypedWorker,
 	Work,
+};
+
+declare global {
+	interface Console {
+		json(v: any): void;
+	}
+}
+
+(console as any).json = function (v: any) {
+	console.log(JSON.stringify(v, null, 2));
 };

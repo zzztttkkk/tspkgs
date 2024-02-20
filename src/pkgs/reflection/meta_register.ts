@@ -44,7 +44,9 @@ class MetaInfo<ClsOpts, PropOpts, MethodOpts> {
 		return this.#register._propsMetaData.get(this.#cls);
 	}
 
-	methods() {}
+	prop(name: string): PropInfo<PropOpts> | undefined {
+		return this.props()?.get(name);
+	}
 }
 
 export function metainfo<ClsOpts, PropOpts, MethodOpts>(

@@ -3,9 +3,12 @@ import { ismain } from "../internal/index.js";
 
 export function IsClass(v: Function): boolean {
 	if (typeof v !== "function") return false;
-	if (util.inspect(v) !== `[class ${v.name}]`) return false;
-	const txt = v.toString();
-	return txt.startsWith(`class ${v.name} {`) && txt.endsWith("}");
+	const ins = util.inspect(v);
+	if (!ins.startsWith(`[class ${v.name}`) || !ins.endsWith("]")) {
+		return false;
+	}
+	const ts = v.toString();
+	return ts.startsWith(`class ${v.name} `) && ts.endsWith("}");
 }
 
 if (ismain(import.meta)) {
