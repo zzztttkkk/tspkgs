@@ -1,6 +1,6 @@
 import { createConnection, createServer } from "net";
 import { Stack } from "../internal/stack.js";
-import { TraceObject, ismain, sleep } from "../internal/index.js";
+import { ismain, sleep } from "../internal/index.js";
 
 interface BaseReadOptions {
 	timeout?: number;
@@ -95,7 +95,7 @@ class BufferChain {
 	}
 }
 
-const MAX_BUF_STACK_DEPTH = 5;
+const MAX_BUF_STACK_DEPTH = 3;
 
 export class Reader {
 	private src: NodeJS.ReadableStream;
@@ -118,10 +118,10 @@ export class Reader {
 	private init() {
 		this.src.on("data", (buf: Buffer) => {
 			this.bufs.push(buf);
-			if (this.buf_resolve) this.buf_resolve();
 			if (this.bufs.depth >= MAX_BUF_STACK_DEPTH) {
 				this.src.pause();
 			}
+			if (this.buf_resolve) this.buf_resolve();
 		});
 		this.src.on("end", () => this.onerr(Errors.Eof));
 		this.src.on("close", () => this.onerr(Errors.Closed));
@@ -133,7 +133,60 @@ export class Reader {
 		if (this.buf_reject) this.buf_reject(v);
 	}
 
-	read(n: number, opts?: ReadOptions): Promise<Buffer> {
+	async ensurebufs(): Promise<Buffer | null> {
+		if (!this.bufs.empty()) return this.bufs.peek();
+
+		this.src.resume();
+
+		const bufp = new Promise<void>((bufres, bufrej) => {
+			this.buf_resolve = bufres;
+			this.buf_reject = bufrej;
+		});
+
+		try {
+			await bufp;
+			return this.bufs.peek();
+		} catch (e) {
+			if (!this.error) {
+				this.error = e;
+				if (this.reject) this.reject(e);
+			}
+			return null;
+		}
+	}
+
+	settimeout(ms: number | undefined): NodeJS.Timeout | undefined {
+		if (!ms || ms < 1) return undefined;
+		return setTimeout(() => {
+			this.error = ReadTimeoutError;
+			if (this.buf_reject) this.buf_reject(ReadTimeoutError);
+			this.reject!(ReadTimeoutError);
+		}, ms);
+	}
+
+	readonce(opts?: BaseReadOptions): Promise<Buffer> {
+		return new Promise<Buffer>(async (resolve, reject) => {
+			if (this.error) {
+				reject(this.error);
+				return;
+			}
+			this.reject = reject;
+
+			const timeout = this.settimeout(opts?.timeout);
+
+			const buf = await this.ensurebufs();
+			if (!buf) return;
+			this.bufs.pop();
+
+			clearTimeout(timeout);
+
+			const cursor = this.cursor;
+			this.cursor = 0;
+			resolve(cursor > 0 ? buf.subarray(cursor) : buf);
+		});
+	}
+
+	readexactly(n: number, opts?: ReadOptions): Promise<Buffer> {
 		return new Promise<Buffer>(async (resolve, reject) => {
 			if (this.error) {
 				reject(this.error);
@@ -141,19 +194,7 @@ export class Reader {
 			}
 
 			this.reject = reject;
-			let timeout: NodeJS.Timeout | undefined;
-			let timeouted = false;
-			let buf_reject: ((v: any) => void) | undefined;
-			if (opts && opts.timeout) {
-				timeout = setTimeout(() => {
-					timeouted = true;
-					this.error = ReadTimeoutError;
-
-					if (buf_reject) buf_reject(ReadTimeoutError);
-					reject(ReadTimeoutError);
-				}, opts.timeout);
-			}
-
+			const timeout = this.settimeout(opts?.timeout);
 			const tmp = opts?.tmp || Buffer.alloc(n);
 			let cur = 0;
 			while (true) {
@@ -162,23 +203,8 @@ export class Reader {
 					return;
 				}
 
-				if (this.bufs.empty()) {
-					if (this.src.isPaused()) this.src.resume();
-
-					const bufp = new Promise<void>((bufres, bufrej) => {
-						this.buf_resolve = bufres;
-						buf_reject = bufrej;
-					});
-
-					try {
-						await bufp;
-					} catch {
-						return;
-					}
-					if (timeouted) return;
-				}
-
-				const buf = this.bufs.peek();
+				const buf = await this.ensurebufs();
+				if (!buf) return;
 
 				const required = n - cur;
 				const remains = buf.length - this.cursor;
@@ -198,13 +224,13 @@ export class Reader {
 				}
 			}
 
-			if (timeout) clearTimeout(timeout);
+			clearTimeout(timeout);
 			resolve(tmp);
 		});
 	}
 
 	readuntil(
-		required: number | string | Buffer,
+		required: string | Buffer,
 		opts?: ReadUntilOptions,
 	): Promise<Buffer> {
 		return new Promise<Buffer>(async (resolve, reject) => {
@@ -213,24 +239,10 @@ export class Reader {
 				return;
 			}
 
-			console.log(TraceObject.A);
-
 			this.reject = reject;
-			let timeout: NodeJS.Timeout | undefined;
-			let timeouted = false;
-			let buf_reject: ((v: any) => void) | undefined;
-			if (opts && opts.timeout) {
-				timeout = setTimeout(() => {
-					reject(ReadTimeoutError);
-					if (buf_reject) {
-						buf_reject(ReadTimeoutError);
-					}
-					timeouted = true;
-					this.error = ReadTimeoutError;
-				}, opts.timeout);
-			}
-
+			const timeout = this.settimeout(opts?.timeout);
 			const tmps = new BufferChain(opts?.allocsize);
+
 			while (true) {
 				if (this.error) {
 					reject(this.error);
@@ -243,21 +255,9 @@ export class Reader {
 					return;
 				}
 
-				if (this.bufs.empty()) {
-					const bufp = new Promise<void>((bufres, bufrej) => {
-						this.buf_resolve = bufres;
-						buf_reject = bufrej;
-					});
+				const buf = await this.ensurebufs();
+				if (!buf) return;
 
-					try {
-						await bufp;
-					} catch {
-						return;
-					}
-					if (timeouted) return;
-				}
-
-				const buf = this.bufs.peek();
 				const idx = buf.indexOf(required, this.cursor);
 				if (idx < 0) {
 					tmps.write(buf, this.cursor, buf.length, true);
@@ -266,15 +266,16 @@ export class Reader {
 					continue;
 				}
 
-				tmps.write(buf, this.cursor, idx + 1, true);
-				this.cursor = idx + 1;
+				tmps.write(buf, this.cursor, idx + required.length, true);
+				this.cursor = idx + required.length;
 				if (this.cursor === buf.length) {
 					this.bufs.pop();
 					this.cursor = 0;
 				}
 				break;
 			}
-			if (timeout) clearTimeout(timeout);
+
+			clearTimeout(timeout);
 			if (opts && opts.maxsize && tmps.size > opts.maxsize) {
 				this.error = ReachMaxSizeError;
 				this.reject(this.error);
@@ -285,7 +286,7 @@ export class Reader {
 	}
 
 	async readline(opts?: ReadLineOptions): Promise<Buffer> {
-		const line = await this.readuntil(10, opts);
+		const line = await this.readuntil("\n", opts);
 		if (!!!opts?.noendl) return line;
 
 		const endl = opts?.endl || ENDL;
@@ -298,25 +299,25 @@ export class Reader {
 }
 
 if (ismain(import.meta)) {
-	const server = createServer(async (sock) => {
+	const server = createServer({}, async (sock) => {
 		const reader = new Reader(sock);
-		while (true) {
-			try {
-				const v = await reader.readline({ noendl: true, timeout: 100 });
-				console.log("line: ", v.length);
-				process.exit(0);
-			} catch (e) {
-				console.log(e);
-				process.exit(0);
-			}
+		try {
+			const v = await reader.readline({ noendl: true, timeout: 5000 });
+			console.log("line: ", v.length);
+			const buf = await reader.readonce();
+			console.log(buf.length);
+		} catch (e) {
+			console.log(e);
+			process.exit(0);
 		}
 	});
 
 	const cli = createConnection(5000);
 	cli.on("connect", async () => {
-		cli.write("a".repeat(10240) + "\r");
-		await sleep(3000);
+		cli.write("a".repeat(10 * 1024 * 1024));
+		await sleep(1000);
 		cli.write("\n");
+		cli.write("a".repeat(10 * 1024 * 1024));
 	});
 	server.listen(5000);
 }

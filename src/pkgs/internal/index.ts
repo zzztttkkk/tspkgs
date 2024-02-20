@@ -57,12 +57,16 @@ export function UniqueId(v: object): BigInt {
 
 export class TraceObject {
 	#name: string;
+	#idx: bigint;
 
 	constructor(name: string) {
 		this.#name = name;
+		this.#idx = BigInt(0);
 	}
 
 	[inspect.custom]() {
+		const uid = this.#idx++;
+
 		const stack = new Error().stack;
 		let line: string | undefined;
 		if (stack) {
@@ -74,12 +78,11 @@ export class TraceObject {
 					break;
 				}
 			}
-
 			line = lines[idx + 1];
 		}
 		line = line || "";
 		if (line.startsWith("at ")) line = line.substring(3);
-		return `[ Trace ${this.#name} ${Date.now()} @ \`${line}\` ]`;
+		return `[ Trace ${this.#name} ${Date.now()} ${uid} @ \`${line}\` ]`;
 	}
 
 	static readonly A = new TraceObject("A");

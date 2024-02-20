@@ -1,5 +1,5 @@
 import { inspect } from "util";
-import { ismain, sleep } from "../internal/index.js";
+import { TraceObject, ismain, sleep } from "../internal/index.js";
 import { Stack } from "../internal/stack.js";
 
 type Waiter = () => void;
