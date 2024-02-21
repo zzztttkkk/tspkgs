@@ -1,6 +1,6 @@
 {
     "name": "@ztkisalreadytaken/tspkgs",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "zzztttkkk's typescript packages",
     "type": "module",
     "main": "build/src/index.js",
@@ -41,5 +41,5 @@
         "luxon": "^3.4.3",
         "reflect-metadata": "^0.1.13"
     },
-    "latest_git_commit_hash": "e8536ee87e3172691f7fefec0ce75c5bb7b1d4f6"
+    "latest_git_commit_hash": "24c1e0552698315cfe66169cfba9ef2f9a53308c"
 }
