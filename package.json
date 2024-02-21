@@ -1,6 +1,6 @@
 {
     "name": "@ztkisalreadytaken/tspkgs",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "description": "zzztttkkk's typescript packages",
     "type": "module",
     "main": "build/src/index.js",
@@ -11,8 +11,8 @@
     ],
     "scripts": {
         "dev": "rimraf ./build && npx swc -d ./build -w ./src ./tests",
-		"build": "rimraf ./build && npx swc -d ./build ./src",
-		"types": "rimraf ./types && npx tsc --emitDeclarationOnly",
+        "build": "rimraf ./build && npx swc -d ./build ./src",
+        "types": "rimraf ./types && npx tsc --emitDeclarationOnly",
         "release": "npm run build && npm run types && node ./devscripts/incr_version.js  && npm publish"
     },
     "repository": {
@@ -41,5 +41,5 @@
         "luxon": "^3.4.3",
         "reflect-metadata": "^0.1.13"
     },
-    "latest_git_commit_hash": "6d17b429e5782466288efa6f57f0c0631c119886"
+    "latest_git_commit_hash": "e8536ee87e3172691f7fefec0ce75c5bb7b1d4f6"
 }

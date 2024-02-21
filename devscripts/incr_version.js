@@ -25,3 +25,8 @@ content.latest_git_commit_hash = latest_git_commit_hash;
 writeFileSync("./package.json", JSON.stringify(content, null, 4), {
 	encoding: "utf-8",
 });
+
+execSync(`git commit -am "release version: ${content.version}"`);
+execSync(`git tag ${content.version}`);
+execSync(`git push origin master`);
+execSync(`git push origin ${content.version}`);
