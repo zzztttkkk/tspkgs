@@ -1,6 +1,13 @@
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 
+const git_status = execSync("git status").toString("utf-8").trim();
+
+if (!git_status.endsWith("nothing to commit, working tree clean")) {
+	console.log(git_status);
+	process.exit(1);
+}
+
 const content = JSON.parse(readFileSync("./package.json"));
 
 const parts = content.version.split(".").map((v) => Number.parseInt(v));
