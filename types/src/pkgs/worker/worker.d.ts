@@ -11,7 +11,8 @@ export declare class TypedWorker<Input, Output> {
     private waiters;
     private idx;
     constructor(file: string);
-    private get nidx();
+    private get nid();
+    private makeTimeoutFunc;
     exec(msg: Input, opts?: ExecOptions): Promise<Output>;
     cancel(idx: bigint): void;
     get busycount(): number;

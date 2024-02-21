@@ -35,4 +35,4 @@ if (props) {
 	}
 }
 
-console.log(UniqueId(meta), UniqueId(props));
+console.log(UniqueId(meta), UniqueId(props || {}));

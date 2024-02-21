@@ -1,13 +1,13 @@
 {
 	"name": "@ztkisalreadytaken/tspkgs",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "zzztttkkk's typescript packages",
 	"type": "module",
 	"main": "build/src/index.js",
 	"types": "types/index.d.ts",
 	"files": [
 		"build/src/**/*.js",
-		"types/**/*.d.ts"
+		"types/src/**/*.d.ts"
 	],
 	"scripts": {
 		"dev": "rimraf ./build && npx swc -d ./build -w ./src ./tests",
