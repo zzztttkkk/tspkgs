@@ -1,35 +1,45 @@
 import { inspect } from "util";
-import { MetaRegister, metainfo } from "../reflection/meta_register.js";
+import {
+	MetaRegister,
+	PropInfo,
+	metainfo,
+} from "../reflection/meta_register.js";
 import { transform } from "../transform/index.js";
 import { __ } from "../internal/index.js";
 
 interface IBaseOpts {
 	alias?: string[];
-	casesensitive?: boolean;
 	type?: any;
 	desc?: string;
 }
 
-interface IFlagOpts extends IBaseOpts {
-	required?: boolean;
-}
+interface IFlagOpts extends IBaseOpts {}
 
 interface ICmdOpts extends IBaseOpts {}
+
+interface IAppOpts {
+	name?: string;
+	desc?: string;
+}
 
 interface IPropOpts {
 	isFlog: boolean;
 	opts?: ICmdOpts | IFlagOpts;
 }
 
-const register = new MetaRegister<unknown, IPropOpts, unknown>(
+const register = new MetaRegister<IAppOpts, IPropOpts, unknown>(
 	Symbol("pkgs:args"),
 );
+
+export function app(opts?: IAppOpts) {
+	return register.cls(opts);
+}
 
 export function flag(opts?: IFlagOpts) {
 	return register.prop({ isFlog: true, opts });
 }
 
-export function cmd(opts?: ICmdOpts) {
+export function subcmd(opts?: ICmdOpts) {
 	return register.prop({ isFlog: false, opts });
 }
 
@@ -58,8 +68,7 @@ function iscmd(v: string): boolean {
 	return Array.from(v.matchAll(CmdRegxp)).length > 0;
 }
 
-function strequal(a: string, b: string, casesensitive?: boolean): boolean {
-	if (casesensitive) return a === b;
+function strequal(a: string, b: string): boolean {
 	return a.toLowerCase() === b.toLowerCase();
 }
 
@@ -72,23 +81,25 @@ function _parse<T>(cls: new () => T, args: string[]): T {
 
 	if (!props || props.size < 1) {
 		for (const av of args) {
-			if (["--help", "-h"].includes(av.toLowerCase())) {
+			if (__.Any(["--help", "-h"], (v) => av.toLowerCase() === v)) {
 				(obj as any).NeedHelp = true;
 			}
 		}
 		return obj;
 	}
 
-	const HasSubCmd = __.Any(props.values(), (v) => !!(v.opts && !v.opts.isFlog));
+	const HasSubCmd = __.Any(
+		props!.values(),
+		(v) => !!(v.opts && !v.opts.isFlog),
+	);
 
 	function getprop(name: string) {
-		for (const [k, v] of props) {
-			const casesensitive = !!v.opts?.opts?.casesensitive;
-			if (strequal(k, name, casesensitive)) return { k, v };
+		for (const [k, v] of props!) {
+			if (strequal(k, name)) return { k, v };
 
 			if (v.opts && v.opts.opts && v.opts.opts.alias) {
 				for (const n of v.opts.opts.alias) {
-					if (strequal(n, name, casesensitive)) {
+					if (strequal(n, name)) {
 						return { k, v };
 					}
 				}
@@ -175,17 +186,116 @@ function _parse<T>(cls: new () => T, args: string[]): T {
 	return obj;
 }
 
-export abstract class AbsCmd<Top, Parent> {
-	private NeedHelp: boolean = false;
+export abstract class AbsCmd<Parent, Top> {
+	private readonly NeedHelp: boolean = false;
 
 	abstract run(parent?: Parent, top?: Top): Promise<void>;
+}
+
+function GetNames(name: string, opts: PropInfo<IPropOpts>): string[] {
+	let names = [name] as string[];
+	if (opts.opts?.opts?.alias) {
+		for (const av of opts.opts?.opts?.alias) {
+			if (names.find((e) => strequal(av, e))) {
+				continue;
+			}
+			names.push(av);
+		}
+	}
+
+	names = names.sort((a, b) => {
+		if (a.length > b.length) {
+			return -1;
+		}
+		if (a.length < b.length) {
+			return 1;
+		}
+		return a > b ? 1 : 1;
+	});
+	return names;
+}
+
+function printHelp(
+	cls: any,
+	stacks: AbsCmd<unknown, unknown>[],
+	name: string | undefined,
+) {
+	const meta = metainfo(register, cls);
+	const clsinfo = meta.cls();
+
+	const names: string[] = stacks.map((v) => {
+		const _cls = Object.getPrototypeOf(v).constructor;
+		const _clsInfo = metainfo(register, _cls).cls();
+		return _clsInfo?.name || _cls.name;
+	});
+	names.push(clsinfo?.name || cls.name);
+
+	let desc: string | undefined = "";
+	const parentObj = stacks[stacks.length - 1];
+	if (parentObj && name) {
+		const prop = metainfo(
+			register,
+			Object.getPrototypeOf(parentObj).constructor,
+		).prop(name);
+		desc = prop?.opts?.opts?.desc;
+	}
+	if (!desc) {
+		desc = clsinfo?.desc;
+	}
+
+	if (desc) {
+		console.log(desc);
+	}
+	console.log("");
+
+	const props = meta.props();
+	if (props && props.size > 0) {
+		const items = Array.from(props.entries());
+		const flags = items.filter((v) => v[1].opts && v[1].opts.isFlog);
+
+		if (flags.length > 0) {
+			console.log("Options:");
+			for (const [name, opts] of flags) {
+				const names = GetNames(name, opts).map((e) => {
+					if (e.length > 1) {
+						return `--${e}`;
+					}
+					return `-${e}`;
+				});
+
+				console.log(
+					`  ${names.join("; ")}  [${
+						opts.designtype.name || inspect(opts.designtype)
+					}]  ${opts.opts?.opts?.desc || ""}`,
+				);
+			}
+		}
+
+		const cmds = items.filter((v) => v[1].opts && !v[1].opts.isFlog);
+
+		if (cmds.length > 0) {
+			console.log("Commands:");
+			for (const [name, opts] of cmds) {
+				const names = GetNames(name, opts);
+
+				desc = opts.opts?.opts?.desc;
+				if (!desc) {
+					const _cls = opts.opts?.opts?.type || opts.designtype;
+					const _clsInfo = metainfo(register, _cls).cls();
+					desc = _clsInfo?.desc;
+				}
+				console.log(`  ${names.join("; ")} ${desc}`);
+			}
+		}
+	}
 }
 
 async function _exec(obj: AbsCmd<any, any>) {
 	const topObj = obj;
 
 	let cmdObj = obj;
-	const stacks = [];
+	const stacks: AbsCmd<unknown, unknown>[] = [];
+	let lastKey: string | undefined;
 
 	while (true) {
 		const cls = Object.getPrototypeOf(cmdObj).constructor;
@@ -195,11 +305,12 @@ async function _exec(obj: AbsCmd<any, any>) {
 		}
 
 		let found = false;
-		for (const [k, v] of Array.from(props.entries()).filter(
-			(v) => v[1].opts && !v[1].opts.isFlog,
-		)) {
+		for (const k of Array.from(props.entries())
+			.filter((v) => v[1].opts && !v[1].opts.isFlog)
+			.map((v) => v[0])) {
 			const tmp = (cmdObj as any)[k];
 			if (tmp) {
+				lastKey = k;
 				stacks.push(cmdObj);
 				cmdObj = tmp;
 				found = true;
@@ -212,6 +323,8 @@ async function _exec(obj: AbsCmd<any, any>) {
 	const parentObj = stacks[stacks.length - 1];
 
 	if ((cmdObj as any).NeedHelp) {
+		printHelp(Object.getPrototypeOf(cmdObj).constructor, stacks, lastKey);
+		return;
 	}
 	return cmdObj.run(parentObj, topObj);
 }

@@ -1,17 +1,21 @@
 import { args } from "../src/index.js";
 
 class AAA extends args.AbsCmd<AA, Cmds> {
-	run(parent?: Cmds | undefined, top?: AA | undefined): Promise<void> {
-		throw new Error("Method not implemented.");
+	run(parent?: AA, top?: Cmds): Promise<void> {
+		throw new Error("Method not implemented AAA.");
 	}
 }
 
 class AA extends args.AbsCmd<A, Cmds> {
-	@args.cmd()
+	@args.flag({ alias: ["x", "xpk", "xone", "x1"] })
+	x1: number = 12;
+
+	@args.subcmd({ desc: "xxx" })
 	aaa?: AAA;
 
-	run(parent?: Cmds | undefined, top?: A | undefined): Promise<void> {
-		throw new Error("Method not implemented SubOfA.");
+	run(parent?: A, top?: Cmds): Promise<void> {
+		console.log(parent, top);
+		return Promise.resolve();
 	}
 }
 
@@ -19,7 +23,7 @@ class A extends args.AbsCmd<Cmds, Cmds> {
 	@args.flag()
 	port: number = 8080;
 
-	@args.cmd()
+	@args.subcmd({ desc: "aa" })
 	aa?: AA;
 
 	run(parent?: Cmds, top?: Cmds): Promise<void> {
@@ -36,11 +40,12 @@ class B extends args.AbsCmd<Cmds, Cmds> {
 	}
 }
 
+@args.app({ desc: "cmds test app" })
 class Cmds extends args.AbsCmd<never, never> {
-	@args.cmd()
+	@args.subcmd({ desc: "a" })
 	a?: A;
 
-	@args.cmd()
+	@args.subcmd()
 	b?: B;
 
 	@args.flag()

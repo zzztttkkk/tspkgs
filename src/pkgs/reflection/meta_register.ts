@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { IsClass } from "./is_class.js";
 import { inspect } from "util";
 
-class PropInfo<T> {
+export class PropInfo<T> {
 	public readonly designtype: any;
 	public readonly opts?: T;
 
@@ -39,7 +39,12 @@ class MetaInfo<ClsOpts, PropOpts, MethodOpts> {
 		this.#cls = cls;
 	}
 
-	props(): PropsMetaMap<PropOpts> {
+	cls(): ClsOpts | undefined {
+		//@ts-ignore
+		return this.#register._clsMetaData.get(this.#cls);
+	}
+
+	props(): PropsMetaMap<PropOpts> | undefined {
 		//@ts-ignore
 		return this.#register._propsMetaData.get(this.#cls);
 	}
