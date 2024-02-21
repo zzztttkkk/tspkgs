@@ -284,7 +284,7 @@ function printHelp(
 					const _clsInfo = metainfo(register, _cls).cls();
 					desc = _clsInfo?.desc;
 				}
-				console.log(`  ${names.join("; ")} ${desc}`);
+				console.log(`  ${names.join("; ")}  ${desc || ""}`);
 			}
 		}
 	}
