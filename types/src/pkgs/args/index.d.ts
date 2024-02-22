@@ -1,3 +1,4 @@
+import "../transform/index.js";
 interface IBaseOpts {
     alias?: string[];
     type?: any;

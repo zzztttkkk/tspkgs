@@ -4,8 +4,8 @@ import {
 	PropInfo,
 	metainfo,
 } from "../reflection/meta_register.js";
-import { transform } from "../transform/index.js";
 import { __ } from "../internal/index.js";
+import "../transform/index.js";
 
 interface IBaseOpts {
 	alias?: string[];

@@ -1,42 +1,24 @@
 import { inspect } from "util";
-import { TraceObject, ismain, sleep } from "../internal/index.js";
+import { ismain, sleep } from "../internal/index.js";
 import { Stack } from "../internal/stack.js";
 
 type Waiter = () => void;
 
-class LockHandle implements Disposable {
-	private readonly release: () => void;
-
-	constructor(release: () => void) {
-		this.release = release;
-	}
-
-	[Symbol.dispose](): void {
-		this.release();
-	}
-
-	[inspect.custom]() {
-		return `[LockHandle]`;
-	}
-}
-
-export class Lock {
+export class Lock implements Disposable {
 	private locked = false;
 	private readonly waiters: Stack<Waiter>;
-	private readonly handle: LockHandle;
 
 	constructor() {
 		this.waiters = new Stack();
-		this.handle = new LockHandle(this.release.bind(this));
 	}
 
 	async acquire() {
 		if (this.locked) {
 			await new Promise<void>((resolve) => this.waiters.push(resolve));
-			return this.handle;
+			return this;
 		}
 		this.locked = true;
-		return this.handle;
+		return this;
 	}
 
 	release() {
@@ -45,6 +27,10 @@ export class Lock {
 			return;
 		}
 		this.waiters.pop()();
+	}
+
+	[Symbol.dispose](): void {
+		this.release();
 	}
 
 	[inspect.custom]() {

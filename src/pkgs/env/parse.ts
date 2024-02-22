@@ -20,17 +20,17 @@ function parse_line(line: string, map: Map<string, string>) {
 }
 
 export async function parse(fp: string): Promise<Map<string, string>> {
-	const fd = await fs.open(fp);
-	const rs = fd.createReadStream({ encoding: "utf8", autoClose: false });
+	const defers = new DisposableStack();
 
-	try {
-		const m = new Map<string, string>();
-		for await (const line of lines(rs)) {
-			parse_line(line, m);
-		}
-		return m;
-	} finally {
-		rs.destroy();
-		fd.close();
+	const fd = await fs.open(fp);
+	defers.adopt(fd, () => fd.close());
+
+	const rs = fd.createReadStream({ encoding: "utf8", autoClose: false });
+	defers.adopt(rs, () => rs.destroy());
+
+	const m = new Map<string, string>();
+	for await (const line of lines(rs)) {
+		parse_line(line, m);
 	}
+	return m;
 }

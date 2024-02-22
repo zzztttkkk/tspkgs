@@ -3,6 +3,7 @@ import * as io from "./pkgs/io/index.js";
 import * as env from "./pkgs/env/index.js";
 import * as luxon from "luxon";
 import * as args from "./pkgs/args/index.js";
+import "./pkgs/transform/index.js";
 
 luxon.Settings.throwOnInvalid = true;
 
@@ -28,6 +29,12 @@ declare global {
 	interface Console {
 		json(v: any): void;
 	}
+
+	interface SymbolConstructor {
+		transform: symbol;
+	}
+
+	function transform<T>(src: any, cls: new (...args: any) => T): T;
 }
 
 (console as any).json = function (v: any) {

@@ -1,8 +1,14 @@
 import { inspect } from "util";
 
-export const TransformSymbol = Symbol("pkgs:transform");
+const TransformSymbol = Symbol("pkgs:transform");
 
-export function transform<T>(src: any, cls: new (...args: any) => T): T {
+Object.defineProperty(Symbol, "transform", {
+	value: TransformSymbol,
+	writable: false,
+	configurable: false,
+});
+
+function transform<T>(src: any, cls: new (...args: any) => T): T {
 	const fn = (cls as any)[TransformSymbol];
 	if (typeof fn !== "function") {
 		throw new Error(
@@ -13,6 +19,12 @@ export function transform<T>(src: any, cls: new (...args: any) => T): T {
 	}
 	return fn(src);
 }
+
+Object.defineProperty(global || window, "transform", {
+	value: transform,
+	writable: false,
+	configurable: false,
+});
 
 Object.defineProperty(Number, TransformSymbol, {
 	configurable: false,

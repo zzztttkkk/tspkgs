@@ -1,14 +1,20 @@
+/// <reference types="node" resolution-mode="require"/>
+import { inspect } from "util";
+declare class ReleaseHandle implements AsyncDisposable {
+    #private;
+    constructor(v: () => Promise<void>);
+    [Symbol.asyncDispose](): PromiseLike<void>;
+}
 export declare class RwLock {
     private readonly lock;
     private writing;
     private readings;
     private readonly waiters;
     constructor();
-    releasew(): Promise<void>;
-    releaser(): Promise<void>;
-    acquirew(): Promise<void>;
-    acquirer(): Promise<void>;
-    private within;
-    withinw<T, Args>(fn: (args?: Args) => Promise<T> | T, args?: Args): Promise<T>;
-    withinr<T, Args>(fn: (args?: Args) => Promise<T> | T, args?: Args): Promise<T>;
+    [inspect.custom](): string;
+    private releasew;
+    private releaser;
+    acquirew(): Promise<ReleaseHandle>;
+    acquirer(): Promise<ReleaseHandle>;
 }
+export {};
