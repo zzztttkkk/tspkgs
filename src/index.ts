@@ -1,9 +1,11 @@
+import { SetDefaultBoolTransformHint } from "./pkgs/transform/index.js";
+
 import * as sync from "./pkgs/sync/index.js";
 import * as io from "./pkgs/io/index.js";
 import * as env from "./pkgs/env/index.js";
 import * as luxon from "luxon";
 import * as args from "./pkgs/args/index.js";
-import "./pkgs/transform/index.js";
+import * as reflection from "./pkgs/reflection/index.js";
 
 luxon.Settings.throwOnInvalid = true;
 
@@ -23,6 +25,7 @@ export {
 	UniqueId,
 	TypedWorker,
 	Work,
+	reflection,
 };
 
 declare global {
@@ -34,9 +37,35 @@ declare global {
 		transform: symbol;
 	}
 
-	function transform<T>(src: any, cls: new (...args: any) => T): T;
+	namespace __pkgs {
+		interface BooleanTransformHint {
+			truths?: string[];
+			casesensitive?: boolean;
+			directly?: boolean;
+		}
+
+		interface NumberTransformHint {
+			radix?: number;
+		}
+	}
+
+	function transform(
+		src: any,
+		cls: NumberConstructor,
+		hint?: __pkgs.NumberTransformHint,
+	): Number;
+	function transform(
+		src: any,
+		cls: BooleanConstructor,
+		hint?: __pkgs.BooleanTransformHint,
+	): Boolean;
+	function transform<T>(src: any, cls: new (...args: any) => T, hint?: any): T;
 }
 
 (console as any).json = function (v: any) {
 	console.log(JSON.stringify(v, null, 2));
+};
+
+export const Settings = {
+	SetDefaultBoolTransformHint,
 };

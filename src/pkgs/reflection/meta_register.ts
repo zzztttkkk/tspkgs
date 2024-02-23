@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { IsClass } from "./is_class.js";
+import { IsClass } from "./classes.js";
 import { inspect } from "util";
 
 export class PropInfo<T> {
@@ -139,3 +139,53 @@ export class MetaRegister<ClsOpts, PropOpts, MethodOpts> {
 		};
 	}
 }
+
+export class ContainerType {
+	public readonly eletype: TypeValue;
+	public readonly bindhint?: any;
+
+	constructor(v: TypeValue, bindhint?: any) {
+		this.eletype = v;
+		this.bindhint = bindhint;
+	}
+
+	[inspect.custom]() {
+		return `[${Object.getPrototypeOf(this).constructor.name} of ${inspect(
+			this.eletype,
+		)}]`;
+	}
+}
+
+export type TypeValue = ContainerType | Function;
+
+export class ArrayType extends ContainerType {}
+
+export class SetType extends ContainerType {}
+
+export class MapType extends ContainerType {
+	public readonly keytype: TypeValue;
+	public readonly keybindhint?: any;
+
+	constructor(
+		k: TypeValue,
+		v: TypeValue,
+		bindhints?: { key?: any; value?: any },
+	) {
+		super(v, bindhints?.value);
+		this.keytype = k;
+		this.keybindhint = bindhints?.key;
+	}
+
+	[inspect.custom]() {
+		return `[${Object.getPrototypeOf(this).constructor.name} of { k: ${inspect(
+			this.keytype,
+		)}, v: ${inspect(this.eletype)}]}`;
+	}
+}
+
+export const containers = {
+	array: (v: TypeValue, bindhint?: any) => new ArrayType(v, bindhint),
+	set: (v: TypeValue, bindhint?: any) => new SetType(v, bindhint),
+	map: (k: TypeValue, v: TypeValue, bindhints?: { key?: any; value?: any }) =>
+		new MapType(k, v, bindhints),
+};
