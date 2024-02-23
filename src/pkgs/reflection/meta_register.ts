@@ -4,7 +4,11 @@ import { inspect } from "util";
 
 export class PropInfo<T> {
 	public readonly designtype: any;
-	public readonly opts?: T;
+	public readonly accessorstatus?: {
+		canget?: boolean;
+		canset?: boolean;
+	};
+	public readonly opts?: T = undefined;
 
 	constructor(designtype: any, opts?: T) {
 		this.designtype = designtype;
@@ -103,7 +107,14 @@ export class MetaRegister<ClsOpts, PropOpts, MethodOpts> {
 				designType = Reflect.getMetadata("design:returntype", target, key);
 			}
 
-			pm.set(key, new PropInfo(designType, opts));
+			const info = new PropInfo(designType, opts);
+			if (desc) {
+				//@ts-ignore
+				info.accessorstatus = {};
+				info.accessorstatus.canget = desc.get != null;
+				info.accessorstatus.canset = desc.set != null;
+			}
+			pm.set(key, info);
 			this._propsMetaData.set(cls, pm);
 		};
 	}

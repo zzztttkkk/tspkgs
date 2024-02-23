@@ -1,12 +1,11 @@
 import { inspect } from "util";
-import { Settings, UniqueId } from "../src/index.js";
+import { UniqueId } from "../src/index.js";
 import { reflection } from "../src/index.js";
-import { bind } from "../src/pkgs/reflection/bind.js";
-import { containers } from "../src/pkgs/reflection/meta_register.js";
 import { IsPureDataObject } from "../src/pkgs/reflection/classes.js";
+
 const EnvRegister = new reflection.MetaRegister<
 	{},
-	{ optional?: boolean; type?: any },
+	{ optional?: boolean } & reflection.IBindPropOpts,
 	{}
 >(Symbol("env"));
 
@@ -55,26 +54,18 @@ console.log(UniqueId(meta), UniqueId(props || {}));
 
 console.log(transform("1240", Number, { radix: 16 }));
 
-console.log(bind(containers.array(Boolean), "FTF1FFF"));
-
-console.log(bind(containers.map(Number, Number), { "1994": 23 }));
-
 const obj = { A: 34, Self: null };
 obj.Self = obj as any;
 console.log(IsPureDataObject(obj));
 
 class Hero {
+	@prop()
 	name!: string;
-	age!: number;
 
-	static [Symbol.transform](obj: any, hint?: any): Hero {
-		if (!IsPureDataObject(obj)) {
-			throw new Error(``);
-		}
-		const ins = new Hero();
-		Object.assign(ins, obj);
-		return ins;
-	}
+	@prop({ bindhint: { radix: 16 } })
+	age!: number;
 }
 
-console.log(transform({ name: "ztk", age: 89 }, Hero));
+const ins = reflection.bind(EnvRegister, Hero, { name: "ztk", age: "120" });
+
+console.log(ins);

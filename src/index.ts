@@ -37,6 +37,10 @@ declare global {
 		transform: symbol;
 	}
 
+	interface ClassOf<T> {
+		new (...args: any): T;
+	}
+
 	namespace __pkgs {
 		interface BooleanTransformHint {
 			truths?: string[];
@@ -59,7 +63,7 @@ declare global {
 		cls: BooleanConstructor,
 		hint?: __pkgs.BooleanTransformHint,
 	): Boolean;
-	function transform<T>(src: any, cls: new (...args: any) => T, hint?: any): T;
+	function transform<T>(src: any, cls: ClassOf<T>, hint?: any): T;
 }
 
 (console as any).json = function (v: any) {

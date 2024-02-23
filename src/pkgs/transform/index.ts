@@ -9,7 +9,7 @@ Object.defineProperty(Symbol, "transform", {
 	configurable: false,
 });
 
-function transform<T>(src: any, cls: new (...args: any) => T, hint?: any): T {
+function transform<T>(src: any, cls: ClassOf<T>, hint?: any): T {
 	const fn = (cls as any)[TransformSymbol];
 	if (typeof fn !== "function") {
 		throw new Error(
@@ -21,7 +21,7 @@ function transform<T>(src: any, cls: new (...args: any) => T, hint?: any): T {
 	return fn(src, hint);
 }
 
-Object.defineProperty(global || window, "transform", {
+Object.defineProperty(global, "transform", {
 	value: transform,
 	writable: false,
 	configurable: false,

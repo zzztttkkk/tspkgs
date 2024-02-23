@@ -21,5 +21,5 @@ export declare abstract class AbsCmd<Parent, Top> {
     private readonly NeedHelp;
     abstract run(parent?: Parent, top?: Top): Promise<void>;
 }
-export declare function Parse<T extends AbsCmd<unknown, unknown>>(cls: new () => T): T;
-export declare function Run<T extends AbsCmd<unknown, unknown>>(cls: new () => T): Promise<void>;
+export declare function Parse<T extends AbsCmd<unknown, unknown>>(cls: ClassOf<T>): T;
+export declare function Run<T extends AbsCmd<unknown, unknown>>(cls: ClassOf<T>): Promise<void>;

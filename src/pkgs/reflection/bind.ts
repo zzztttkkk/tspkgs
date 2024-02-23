@@ -1,7 +1,15 @@
 import { inspect } from "util";
-import { ArrayType, MapType, SetType, TypeValue } from "./meta_register.js";
+import {
+	ArrayType,
+	MapType,
+	MetaRegister,
+	PropInfo,
+	SetType,
+	TypeValue,
+	metainfo,
+} from "./meta_register.js";
 
-export function bind(typev: TypeValue, obj: any, hint?: any): any {
+function __bind(typev: TypeValue, obj: any, hint?: any): any {
 	if (typeof typev === "function") return transform(obj, typev as any, hint);
 
 	if (typev instanceof ArrayType) {
@@ -13,7 +21,7 @@ export function bind(typev: TypeValue, obj: any, hint?: any): any {
 
 		const ary = [] as any[];
 		for (const ele of obj) {
-			ary.push(bind(typev.eletype, ele, typev.bindhint));
+			ary.push(__bind(typev.eletype, ele, typev.bindhint));
 		}
 		return ary;
 	}
@@ -27,7 +35,7 @@ export function bind(typev: TypeValue, obj: any, hint?: any): any {
 
 		const ary = new Set<any>();
 		for (const ele of obj) {
-			ary.add(bind(typev.eletype, ele, typev.bindhint));
+			ary.add(__bind(typev.eletype, ele, typev.bindhint));
 		}
 		return ary;
 	}
@@ -40,8 +48,8 @@ export function bind(typev: TypeValue, obj: any, hint?: any): any {
 
 	function add(k: any, v: any) {
 		map.set(
-			bind((typev as MapType).keytype, k, (typev as MapType).keybindhint),
-			bind((typev as MapType).eletype, v, (typev as MapType).bindhint),
+			__bind((typev as MapType).keytype, k, (typev as MapType).keybindhint),
+			__bind((typev as MapType).eletype, v, (typev as MapType).bindhint),
 		);
 	}
 
@@ -68,4 +76,49 @@ export function bind(typev: TypeValue, obj: any, hint?: any): any {
 	}
 	Object.entries(obj).forEach(([k, v]) => add(k, v));
 	return map;
+}
+
+type SrcPeekFunc<P> = (src: any, key: string, info: PropInfo<P>) => any;
+
+function DefaultSrcPeek(src: any, key: string): any {
+	return src[key];
+}
+
+export interface IBindPropOpts {
+	type?: TypeValue;
+	bindhint?: any;
+}
+
+// T's constructor must has empty params
+export function bind<T, P extends IBindPropOpts>(
+	register: MetaRegister<unknown, P, unknown>,
+	cls: ClassOf<T>,
+	src: any,
+	opts?: {
+		proppeek?: SrcPeekFunc<P>;
+		newargs?: any[];
+	},
+): T {
+	if (typeof (cls as any)[Symbol.transform] === "function") {
+		return transform(src, cls);
+	}
+
+	const meta = metainfo(register, cls);
+
+	const props = meta.props();
+	if (!props) throw new Error(``);
+
+	const peek: SrcPeekFunc<P> = opts?.proppeek || DefaultSrcPeek;
+
+	const ele = opts?.newargs ? new cls(...opts.newargs) : new cls();
+
+	for (const [k, p] of props) {
+		if (p.accessorstatus && !p.accessorstatus.canset) {
+			continue;
+		}
+		const typev = p.opts?.type || p.designtype;
+		const srcv = peek(src, k, p);
+		(ele as any)[k] = __bind(typev, srcv, p.opts?.bindhint);
+	}
+	return ele;
 }

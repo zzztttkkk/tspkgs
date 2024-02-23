@@ -72,7 +72,7 @@ function strequal(a: string, b: string): boolean {
 	return a.toLowerCase() === b.toLowerCase();
 }
 
-function _parse<T>(cls: new () => T, args: string[]): T {
+function _parse<T>(cls: ClassOf<T>, args: string[]): T {
 	const obj = new cls();
 	if (args.length < 1) return obj;
 
@@ -329,12 +329,12 @@ async function _exec(obj: AbsCmd<any, any>) {
 	return cmdObj.run(parentObj, topObj);
 }
 
-export function Parse<T extends AbsCmd<unknown, unknown>>(cls: new () => T): T {
+export function Parse<T extends AbsCmd<unknown, unknown>>(cls: ClassOf<T>): T {
 	return _parse(cls, process.argv.slice(2));
 }
 
 export function Run<T extends AbsCmd<unknown, unknown>>(
-	cls: new () => T,
+	cls: ClassOf<T>,
 ): Promise<void> {
 	return _exec(Parse(cls));
 }

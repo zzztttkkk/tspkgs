@@ -4,5 +4,7 @@ export {
 	MetaRegister,
 	metainfo,
 	containers,
+	type TypeValue,
 } from "./meta_register.js";
-export { bind } from "./bind.js";
+
+export { bind, type IBindPropOpts } from "./bind.js";
