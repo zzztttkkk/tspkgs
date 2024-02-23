@@ -3,14 +3,12 @@ import { SetDefaultBoolTransformHint } from "./pkgs/transform/index.js";
 import * as sync from "./pkgs/sync/index.js";
 import * as io from "./pkgs/io/index.js";
 import * as env from "./pkgs/env/index.js";
-import * as luxon from "luxon";
 import * as args from "./pkgs/args/index.js";
 import * as reflection from "./pkgs/reflection/index.js";
 
-luxon.Settings.throwOnInvalid = true;
-
 import { Hole, sleep, ismain, UniqueId, __ } from "./pkgs/internal/index.js";
 import { TypedWorker, Work } from "./pkgs/worker/worker.js";
+import { inspect } from "util";
 
 export {
 	__,
@@ -20,7 +18,6 @@ export {
 	Hole,
 	sleep,
 	env,
-	luxon,
 	ismain,
 	UniqueId,
 	TypedWorker,
@@ -31,6 +28,7 @@ export {
 declare global {
 	interface Console {
 		json(v: any): void;
+		inspect(v: any): void;
 	}
 
 	interface SymbolConstructor {
@@ -68,6 +66,10 @@ declare global {
 
 (console as any).json = function (v: any) {
 	console.log(JSON.stringify(v, null, 2));
+};
+
+(console as any).inspect = function (v: any) {
+	console.log(inspect(v));
 };
 
 export const Settings = {

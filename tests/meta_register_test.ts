@@ -1,7 +1,6 @@
 import { inspect } from "util";
 import { UniqueId } from "../src/index.js";
 import { reflection } from "../src/index.js";
-import { IsPureDataObject } from "../src/pkgs/reflection/classes.js";
 
 const EnvRegister = new reflection.MetaRegister<
 	{},
@@ -50,13 +49,9 @@ if (props) {
 	}
 }
 
-console.log(UniqueId(meta), UniqueId(props || {}));
+console.log(UniqueId(meta) === UniqueId(meta));
 
 console.log(transform("1240", Number, { radix: 16 }));
-
-const obj = { A: 34, Self: null };
-obj.Self = obj as any;
-console.log(IsPureDataObject(obj));
 
 class Hero {
 	@prop()
