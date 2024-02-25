@@ -39,7 +39,10 @@
         "@swc/helpers": "^0.5.6",
         "glob": "^10.3.4",
         "luxon": "^3.4.3",
-        "reflect-metadata": "^0.1.13"
+        "node-stringbuilder": "^2.2.7",
+        "pino": "^8.19.0",
+        "reflect-metadata": "^0.1.13",
+        "sonic-boom": "^3.8.0"
     },
     "latest_git_commit_hash": "24c1e0552698315cfe66169cfba9ef2f9a53308c"
 }

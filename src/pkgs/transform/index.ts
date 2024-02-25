@@ -93,3 +93,32 @@ Object.defineProperty(Boolean, TransformSymbol, {
 		return __.Any(_ts, (v) => v.toUpperCase() === uv);
 	},
 });
+
+declare global {
+	interface SymbolConstructor {
+		transform: symbol;
+	}
+	namespace __pkgs {
+		interface BooleanTransformHint {
+			truths?: string[];
+			casesensitive?: boolean;
+			directly?: boolean;
+		}
+
+		interface NumberTransformHint {
+			radix?: number;
+		}
+	}
+
+	function transform(
+		src: any,
+		cls: NumberConstructor,
+		hint?: __pkgs.NumberTransformHint,
+	): Number;
+	function transform(
+		src: any,
+		cls: BooleanConstructor,
+		hint?: __pkgs.BooleanTransformHint,
+	): Boolean;
+	function transform<T>(src: any, cls: ClassOf<T>, hint?: any): T;
+}

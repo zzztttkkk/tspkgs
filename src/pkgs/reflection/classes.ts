@@ -2,7 +2,7 @@ import * as util from "util";
 
 export function IsClass(v: Function): boolean {
 	if (typeof v !== "function") return false;
-	const ins = util.inspect(v);
+	const ins = util.inspect(v, false, 1);
 	if (!ins.startsWith(`[class ${v.name}`) || !ins.endsWith("]")) {
 		return false;
 	}

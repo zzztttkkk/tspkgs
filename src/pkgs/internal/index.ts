@@ -4,6 +4,7 @@ import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
 import { inspect } from "util";
 import * as __ from "./__/index.js";
+import "./globals/index.js";
 
 export { Stack, Hole, __ };
 
