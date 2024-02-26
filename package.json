@@ -41,6 +41,7 @@
         "luxon": "^3.4.3",
         "node-stringbuilder": "^2.2.7",
         "pino": "^8.19.0",
+        "pino-abstract-transport": "^1.1.0",
         "reflect-metadata": "^0.1.13",
         "sonic-boom": "^3.8.0"
     },

@@ -1,10 +1,11 @@
 import "./global.process.js";
 
 import pino from "pino";
-import type { SonicBoom, SonicBoomOpts } from "sonic-boom";
+import SonicBoom from "sonic-boom";
 import path from "path";
 import fs from "fs/promises";
 import { exists } from "../../io/index.js";
+import { sleep } from "../index.js";
 
 interface LogFn {
 	<T extends object>(obj: T, msg?: string, ...args: any[]): void;
@@ -14,10 +15,9 @@ interface LogFn {
 
 declare global {
 	namespace logging {
-		const init: (
-			opts: pino.LoggerOptions,
-			stream?: pino.DestinationStream,
-		) => void;
+		const init: {
+			(opts: pino.LoggerOptions, stream?: pino.DestinationStream): void;
+		};
 
 		const flush: () => Promise<void>;
 
@@ -27,57 +27,59 @@ declare global {
 		const warn: LogFn;
 		const error: LogFn;
 		const fatal: LogFn;
+		const child: (
+			bindings: pino.Bindings,
+			options?: pino.ChildLoggerOptions,
+		) => pino.Logger;
 
-		interface DailyRotationSonicBoomOption extends SonicBoomOpts {
+		interface DailyRotationSonicBoomOption extends SonicBoom.SonicBoomOpts {
 			datefmt?: (year: number, month: number, date: number) => string;
 		}
 
-		// @ts-ignore
-		class DailyRotationSonicBoom implements pino.DestinationStream {
-			constructor(opts: DailyRotationSonicBoomOption);
-		}
+		const dailyrotation: (
+			opts: DailyRotationSonicBoomOption,
+		) => SonicBoom.SonicBoom;
 	}
 }
 
 let _logger: pino.Logger | null = null;
 
-class DailyRotationSonicBoom implements pino.DestinationStream {
-	#sonicboom: SonicBoom;
-	#flag: boolean;
-	#tmp: string[];
-	#dest: string;
-	#filepath: string;
-	#filename: string;
-	#fileext: string;
-	#datefmt: (year: number, month: number, date: number) => string;
+function dailyrotation(
+	opts: logging.DailyRotationSonicBoomOption,
+): SonicBoom.SonicBoom {
+	opts.mkdir = true;
 
-	constructor(opts: logging.DailyRotationSonicBoomOption) {
-		opts.mkdir = true;
+	let fp = opts.dest;
+	if (!fp || typeof fp !== "string") {
+		throw new Error(`empty file path or not a string`);
+	}
+	fp = path.resolve(fp);
 
-		let fp = opts.dest;
-		if (!fp || typeof fp !== "string") {
-			throw new Error(`empty file path or not a string`);
-		}
-		this.#dest = fp;
-
-		this.#datefmt = opts.datefmt
+	const dest = fp;
+	let flag: boolean = false;
+	let tmp: string[] = [];
+	const datefmt: (year: number, month: number, date: number) => string =
+		opts.datefmt
 			? opts.datefmt
 			: (y, m, d) => `${y}_${m < 10 ? `0${m}` : m}_${d < 10 ? `0${d}` : d}`;
 
-		fp = path.resolve(fp);
-		this.#filepath = path.dirname(fp);
-		const basename = path.basename(fp);
-		this.#fileext = path.extname(basename);
-		this.#filename = basename.slice(0, basename.length - this.#fileext.length);
+	const filepath = path.dirname(fp);
+	const basename = path.basename(fp);
+	const fileext = path.extname(basename);
+	const filename = basename.slice(0, basename.length - fileext.length);
+	let timeoutHandle: NodeJS.Timeout | undefined;
 
-		this.#sonicboom = pino.destination(opts);
-		this.#tmp = [];
-		this.#flag = false;
+	const obj = new SonicBoom.SonicBoom(opts);
 
-		this.go();
+	function go() {
+		const now = Date.now();
+		const date = new Date(now - 3600_000);
+		date.setHours(23, 59, 59, 999);
+		const endofday = date.getTime();
+		timeoutHandle = setTimeout(rotation, endofday - now);
 	}
 
-	private async rename() {
+	async function rename() {
 		const now = new Date();
 		const [year, month, date] = [
 			now.getFullYear(),
@@ -85,7 +87,7 @@ class DailyRotationSonicBoom implements pino.DestinationStream {
 			now.getDate(),
 		];
 
-		const namewithoutext = `${this.#filepath}/${this.#filename}.${this.#datefmt(
+		const namewithoutext = `${filepath}/${filename}.${datefmt(
 			year,
 			month,
 			date,
@@ -95,12 +97,12 @@ class DailyRotationSonicBoom implements pino.DestinationStream {
 		while (true) {
 			let name: string;
 			if (idx === 0) {
-				name = `${namewithoutext}${this.#fileext}`;
+				name = `${namewithoutext}${fileext}`;
 			} else {
 				if (idx <= 5) {
-					name = `${namewithoutext}.${idx}${this.#fileext}`;
+					name = `${namewithoutext}.${idx}${fileext}`;
 				} else {
-					name = `${namewithoutext}.${idx}.${Date.now()}${this.#fileext}`;
+					name = `${namewithoutext}.${idx}.${Date.now()}${fileext}`;
 				}
 			}
 
@@ -109,57 +111,63 @@ class DailyRotationSonicBoom implements pino.DestinationStream {
 				continue;
 			}
 
-			await fs.rename(this.#dest, name);
+			await fs.rename(dest, name);
 			break;
 		}
 
-		this.#sonicboom.reopen();
+		obj.reopen();
 	}
 
-	private async rotation() {
-		this.#flag = true;
+	async function rotation() {
+		flag = true;
 
-		await new Promise<void>((res) => this.#sonicboom.flush(() => res()));
+		await new Promise<void>((res) => obj.flush(() => res()));
 
-		await this.rename();
+		await rename();
 
-		for (const item of this.#tmp) {
-			this.#sonicboom.write(item);
+		for (const item of tmp) {
+			obj.write(item);
 		}
 
-		this.#tmp = [];
-		this.#flag = false;
-		this.go();
+		tmp = [];
+		flag = false;
+		go();
 	}
 
-	private go() {
-		const date = new Date();
-		const now = date.getTime();
-		date.setHours(23, 59, 59, 999);
-		const endofday = date.getTime();
-		setTimeout(this.rotation, endofday - now);
+	const write = obj.write.bind(obj);
+
+	obj.write = function (v: string): boolean {
+		if (flag) {
+			tmp.push(v);
+			return true;
+		}
+		return write(v);
+	};
+
+	const end = obj.end.bind(obj);
+
+	async function wait() {
+		while (flag) {
+			await sleep(50);
+		}
 	}
 
-	write(msg: string): void {
-		if (this.#flag) {
-			this.#tmp.push(msg);
+	obj.end = function () {
+		clearTimeout(timeoutHandle);
+		if (!flag) {
+			end();
 			return;
 		}
-		this.#sonicboom.write(msg);
-	}
+		wait().then(() => end());
+	};
 
-	flush(cb: () => void) {
-		this.#sonicboom.flush(cb);
-	}
-
-	flushSync() {
-		this.#sonicboom.flushSync();
-	}
+	go();
+	return obj;
 }
 
 const __logging = {
 	init: function (opts: pino.LoggerOptions, stream?: pino.DestinationStream) {
-		_logger = pino.default(opts, stream);
+		_logger = pino.pino(opts, stream);
 
 		for (const name of [
 			"trace",
@@ -168,6 +176,7 @@ const __logging = {
 			"warn",
 			"error",
 			"fatal",
+			"child",
 		] as (keyof pino.Logger)[]) {
 			Object.defineProperty(this, name, {
 				value: (_logger as any)[name].bind(_logger),
@@ -187,8 +196,7 @@ const __logging = {
 
 		BeforeProcessExit(() => (this as any).flush());
 	},
-
-	DailyRotationSonicBoom,
+	dailyrotation,
 };
 
 Object.defineProperty(global, "logging", {
