@@ -3,13 +3,12 @@ import {
 	ArrayType,
 	MapType,
 	MetaRegister,
-	PropInfo,
 	SetType,
 	TypeValue,
 	metainfo,
 } from "./meta_register.js";
 
-function __bind(typev: TypeValue, obj: any, hint?: any): any {
+export function __bind(typev: TypeValue, obj: any, hint?: any): any {
 	if (typeof typev === "function") return transform(obj, typev as any, hint);
 
 	if (typev instanceof ArrayType) {
@@ -78,12 +77,6 @@ function __bind(typev: TypeValue, obj: any, hint?: any): any {
 	return map;
 }
 
-type SrcPeekFunc<P> = (src: any, key: string, info: PropInfo<P>) => any;
-
-function DefaultSrcPeek(src: any, key: string): any {
-	return src[key];
-}
-
 export interface IBindPropOpts {
 	type?: TypeValue;
 	bindhint?: any;
@@ -94,10 +87,6 @@ export function bind<T, P extends IBindPropOpts>(
 	register: MetaRegister<unknown, P, unknown>,
 	cls: ClassOf<T>,
 	src: any,
-	opts?: {
-		proppeek?: SrcPeekFunc<P>;
-		newargs?: any[];
-	},
 ): T {
 	if (typeof (cls as any)[Symbol.transform] === "function") {
 		return transform(src, cls);
@@ -106,18 +95,20 @@ export function bind<T, P extends IBindPropOpts>(
 	const meta = metainfo(register, cls);
 
 	const props = meta.props();
-	if (!props) throw new Error(``);
+	if (!props) {
+		throw new Error(`empty refleaction metadata, [class ${cls.name}]`);
+	}
 
-	const peek: SrcPeekFunc<P> = opts?.proppeek || DefaultSrcPeek;
-
-	const ele = opts?.newargs ? new cls(...opts.newargs) : new cls();
+	const ele = new cls();
 
 	for (const [k, p] of props) {
 		if (p.accessorstatus && !p.accessorstatus.canset) {
 			continue;
 		}
+		const srcv = src[k];
+		if (typeof srcv === "undefined") continue;
+
 		const typev = p.opts?.type || p.designtype;
-		const srcv = peek(src, k, p);
 		(ele as any)[k] = __bind(typev, srcv, p.opts?.bindhint);
 	}
 	return ele;

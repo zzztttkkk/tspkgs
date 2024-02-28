@@ -1,27 +1,17 @@
-export async function* asyncenumerate<Y, R, N>(
-	inner: AsyncGenerator<Y, R, N>,
-): AsyncGenerator<[number, Y], R, N> {
+export async function* asyncenumerate<Y>(
+	inner: AsyncGenerator<Y>,
+): AsyncGenerator<[number, Y]> {
 	let idx = 0;
-	while (true) {
-		const { value, done } = await inner.next();
-		if (done) {
-			return value;
-		}
-		yield [idx, value];
+	for await (const ele of inner) {
+		yield [idx, ele];
 		idx++;
 	}
 }
 
-export function* enumerate<Y, R, N>(
-	inner: Generator<Y, R, N>,
-): Generator<[number, Y], R, N> {
+export function* enumerate<Y>(inner: Generator<Y>): Generator<[number, Y]> {
 	let idx = 0;
-	while (true) {
-		const { value, done } = inner.next();
-		if (done) {
-			return value;
-		}
-		yield [idx, value];
+	for (const ele of inner) {
+		yield [idx, ele];
 		idx++;
 	}
 }

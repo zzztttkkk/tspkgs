@@ -1,4 +1,4 @@
-export { IsClass, IsSubClassOf, IsPureDataObject } from "./classes.js";
+export { IsClass, IsSubClassOf, IsPureDataObject, classof } from "./classes.js";
 export {
 	PropInfo,
 	MetaRegister,
@@ -8,3 +8,4 @@ export {
 } from "./meta_register.js";
 
 export { bind, type IBindPropOpts } from "./bind.js";
+export { merge, type IMergePropOpts } from "./merge.js";
