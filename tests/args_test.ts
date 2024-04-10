@@ -1,5 +1,4 @@
 import { args } from "../src/index.js";
-import { classof } from "../src/pkgs/reflection/classes.js";
 
 class AAA extends args.AbsCmd<AA, Cmds> {
 	run(parent?: AA, top?: Cmds): Promise<void> {
