@@ -26,23 +26,20 @@
     },
     "homepage": "https://github.com/zzztttkkk/tspkgs#readme",
     "devDependencies": {
-        "@swc/cli": "^0.3.9",
-        "@swc/core": "^1.4.1",
-        "@types/luxon": "^3.3.2",
-        "@types/node": "^20.5.9",
+        "@swc/cli": "^0.3.12",
+        "@swc/core": "^1.5.7",
+        "@types/luxon": "^3.4.2",
+        "@types/node": "^20.12.12",
         "chokidar": "^3.5.3",
         "prettier": "3.0.3",
         "rimraf": "^5.0.5",
-        "typescript": "5.3.3"
+        "typescript": "5.4.5"
     },
     "dependencies": {
-        "@swc/helpers": "^0.5.6",
+        "@swc/helpers": "^0.5.11",
         "glob": "^10.3.4",
-        "luxon": "^3.4.3",
-        "node-stringbuilder": "^2.2.7",
-        "pino": "^8.19.0",
-        "reflect-metadata": "^0.1.13",
-        "sonic-boom": "^3.8.0"
+        "luxon": "^3.4.4",
+        "reflect-metadata": "^0.2.2"
     },
     "latest_git_commit_hash": "24c1e0552698315cfe66169cfba9ef2f9a53308c"
 }
