@@ -25,3 +25,7 @@ export function IsPureDataObject(v: any): boolean {
 		}
 	}
 }
+
+export function classof<T>(obj: T): ClassOf<T> {
+	return Object.getPrototypeOf(obj).constructor;
+}

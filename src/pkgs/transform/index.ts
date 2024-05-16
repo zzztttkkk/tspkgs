@@ -48,7 +48,9 @@ Object.defineProperty(Number, TransformSymbol, {
 				return src ? 1 : 0;
 			}
 			default: {
-				throw new Error(`${inspect(src, false, 1)} can not transfor to Number`);
+				throw new Error(
+					`${inspect(src, false, 1)} can not transform to Number`,
+				);
 			}
 		}
 	},
@@ -59,7 +61,9 @@ Object.defineProperty(String, TransformSymbol, {
 	writable: false,
 	enumerable: false,
 	value: function (src: any): string {
-		if (src == null) return inspect(src);
+		if (typeof src == "undefined") {
+			throw new Error(`can not trhansform undefined to String`);
+		}
 		return src.toString();
 	},
 });
