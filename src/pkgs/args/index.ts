@@ -23,7 +23,7 @@ interface IAppOpts {
 }
 
 interface IPropOpts {
-	isFlog: boolean;
+	isFlag: boolean;
 	opts?: ICmdOpts | IFlagOpts;
 }
 
@@ -36,11 +36,11 @@ export function app(opts?: IAppOpts) {
 }
 
 export function flag(opts?: IFlagOpts) {
-	return register.prop({ isFlog: true, opts });
+	return register.prop({ isFlag: true, opts });
 }
 
 export function subcmd(opts?: ICmdOpts) {
-	return register.prop({ isFlog: false, opts });
+	return register.prop({ isFlag: false, opts });
 }
 
 const [NODE_PATH, SCRIPT_PATH, ..._] = process.argv;
@@ -90,7 +90,7 @@ function _parse<T>(cls: ClassOf<T>, args: string[]): T {
 
 	const HasSubCmd = __.Any(
 		props!.values(),
-		(v) => !!(v.opts && !v.opts.isFlog),
+		(v) => !!(v.opts && !v.opts.isFlag),
 	);
 
 	function getprop(name: string) {
@@ -251,7 +251,7 @@ function printHelp(
 	const props = meta.props();
 	if (props && props.size > 0) {
 		const items = Array.from(props.entries());
-		const flags = items.filter((v) => v[1].opts && v[1].opts.isFlog);
+		const flags = items.filter((v) => v[1].opts && v[1].opts.isFlag);
 
 		if (flags.length > 0) {
 			console.log("Options:");
@@ -271,7 +271,7 @@ function printHelp(
 			}
 		}
 
-		const cmds = items.filter((v) => v[1].opts && !v[1].opts.isFlog);
+		const cmds = items.filter((v) => v[1].opts && !v[1].opts.isFlag);
 
 		if (cmds.length > 0) {
 			console.log("Commands:");
@@ -306,7 +306,7 @@ async function _exec(obj: AbsCmd<any, any>) {
 
 		let found = false;
 		for (const k of Array.from(props.entries())
-			.filter((v) => v[1].opts && !v[1].opts.isFlog)
+			.filter((v) => v[1].opts && !v[1].opts.isFlag)
 			.map((v) => v[0])) {
 			const tmp = (cmdObj as any)[k];
 			if (tmp) {

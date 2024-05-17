@@ -5,6 +5,7 @@ import { Hole } from "./hole.js";
 import { inspect } from "util";
 import * as __ from "./__/index.js";
 import "./globals/index.js";
+import deasync from "deasync";
 
 export { Stack, Hole, __ };
 
@@ -56,3 +57,38 @@ export function UniqueId(v: object): BigInt {
 		}
 	}
 }
+
+const OnShutdownHooks = [] as { name: string; fn: () => Promise<void> }[];
+export function RegisterOnShutdown(name: string, fn: () => Promise<void>) {
+	OnShutdownHooks.push({ name, fn });
+}
+
+let shutdown_called = false;
+function shutdown() {
+	if (shutdown_called) return;
+	shutdown_called = true;
+
+	console.log("PID", process.pid);
+
+	let c = 0;
+	for (const hook of OnShutdownHooks) {
+		console.log(hook.fn.toString());
+
+		const catchfn = ((name: string) => {
+			return (e: any) => {
+				console.error("ShutdownHookExecFailed:", name, e);
+			};
+		})(hook.name);
+
+		hook
+			.fn()
+			.catch(catchfn)
+			.finally(() => {
+				c++;
+			});
+	}
+	deasync.loopWhile(() => c < OnShutdownHooks.length);
+}
+
+process.on("exit", shutdown);
+process.on("beforeExit", shutdown);

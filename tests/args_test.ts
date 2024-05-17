@@ -1,4 +1,4 @@
-import { args } from "../src/index.js";
+import { args, sleep } from "../src/index.js";
 
 class AAA extends args.AbsCmd<AA, Cmds> {
 	run(parent?: AA, top?: Cmds): Promise<void> {
