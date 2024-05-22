@@ -1,9 +1,9 @@
 export enum Level {
-	Trace = -1,
-	Debug = 0,
-	Info = 1,
-	Warn = 2,
-	Error = 3,
+	Trace = 0,
+	Debug = 1,
+	Info = 2,
+	Warn = 3,
+	Error = 4,
 }
 
 export interface Item {
@@ -11,4 +11,5 @@ export interface Item {
 	level: Level;
 	msg: string;
 	args: any[];
+	meta?: { [k: string]: any };
 }

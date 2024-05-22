@@ -111,6 +111,10 @@ export class TypedWorker<Input, Output> {
 	get idle(): boolean {
 		return this.waiters.size < 1;
 	}
+
+	async close() {
+		await this.worker.terminate();
+	}
 }
 
 export enum TypedWorkerPoolDispatchPolicy {

@@ -60,3 +60,14 @@ class Cmds extends args.AbsCmd<never, never> {
 process.argv = process.argv.concat(["-h"]);
 
 await args.Run(Cmds);
+
+process.RegisterOnShutdownAction(async () => {
+	console.log(">>>>>>>>>>>", "SHUTDOWN");
+	await sleep(1000);
+	console.log("!!!!");
+});
+
+console.log(">>>>>>>>>>>>>>>>", process.pid);
+while (true) {
+	await sleep(1000);
+}

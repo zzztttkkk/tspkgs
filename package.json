@@ -28,7 +28,6 @@
     "devDependencies": {
         "@swc/cli": "^0.3.12",
         "@swc/core": "^1.5.7",
-        "@types/deasync": "^0.1.5",
         "@types/luxon": "^3.4.2",
         "@types/node": "^20.12.12",
         "chokidar": "^3.5.3",
@@ -38,7 +37,6 @@
     },
     "dependencies": {
         "@swc/helpers": "^0.5.11",
-        "deasync": "^0.1.29",
         "glob": "^10.3.4",
         "luxon": "^3.4.4",
         "reflect-metadata": "^0.2.2"

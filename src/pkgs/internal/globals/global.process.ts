@@ -2,7 +2,7 @@ import "./global.types.js";
 
 const BeforeExitActions = [] as Action[];
 
-function BeforeProcessExit(action: Action) {
+function RegisterOnShutdownAction(action: Action) {
 	BeforeExitActions.push(action);
 }
 
@@ -17,24 +17,21 @@ async function exec() {
 	process.exit(0);
 }
 
-for (const signal of [
-	"SIGINT",
-	"SIGTERM",
-	"SIGKILL",
-	"SIGQUIT",
-] as NodeJS.Signals[]) {
+for (const signal of ["SIGINT", "SIGTERM"] as NodeJS.Signals[]) {
 	process.on(signal, exec);
 }
 
-process.on("exit", exec);
-
-Object.defineProperty(global, "BeforeProcessExit", {
-	value: BeforeProcessExit,
+Object.defineProperty(process, "RegisterOnShutdownAction", {
+	value: RegisterOnShutdownAction,
 	writable: false,
 	configurable: false,
 	enumerable: false,
 });
 
 declare global {
-	function BeforeProcessExit(action: Action): void;
+	namespace NodeJS {
+		interface Process {
+			RegisterOnShutdownAction: (action: Action) => void;
+		}
+	}
 }

@@ -1,60 +1,41 @@
-import fs from "fs/promises";
-import { RegisterOnShutdown } from "../internal/index.js";
-
 export interface Appender {
-	append(log: string): void;
+	append(at: number, log: string): Promise<void>;
+	close(): Promise<void>;
 }
 
-export class FileAppender implements Appender {
-	buffers: string[] = [];
-	size: number = 0;
-	fd: fs.FileHandle | null = null;
+export class ConsoleAppender implements Appender {
+	append(at: number, log: string): Promise<void> {
+		console.log(log);
+		return Promise.resolve();
+	}
 
-	tmp: string[] = [];
-	interval: NodeJS.Timeout | null = null;
+	close(): Promise<void> {
+		return Promise.resolve();
+	}
+}
+
+export type AppendFuncType = (at: number, log: string) => Promise<void>;
+export type CloseFuncType = () => Promise<void>;
+
+export class FuncAppender implements Appender {
+	private append_fn: AppendFuncType | null = null;
+	private close_fn: CloseFuncType | null = null;
 
 	constructor(
-		private path: string,
-		private bufsize: number,
+		append_fn: AppendFuncType | null,
+		close_fn: CloseFuncType | null = null,
 	) {
-		this.interval = setInterval(this.task, 100);
-		RegisterOnShutdown(
-			`pkgs.logging.CloseFileAppender: ${this.path}`,
-			this.close,
-		);
+		this.append_fn = append_fn;
+		this.close_fn = close_fn;
 	}
 
-	private async write(txt: string) {
-		if (this.fd == null) {
-			this.fd = await fs.open(this.path, "a");
-		}
-		await fs.writeFile(this.fd, txt);
+	append(at: number, log: string): Promise<void> {
+		if (this.append_fn == null) return Promise.resolve();
+		return this.append_fn(at, log);
 	}
 
-	private async close() {
-		if (this.fd == null) {
-			return;
-		}
-		if (this.interval) {
-			clearInterval(this.interval);
-		}
-		await this.task();
-	}
-
-	private async task() {
-		const txt = this.tmp.join("");
-		this.tmp.length = 0;
-		await this.write(txt);
-	}
-
-	append(log: string): void {
-		this.buffers.push(log);
-		this.size += log.length;
-		if (this.size < this.bufsize) {
-			return;
-		}
-		this.tmp.push(this.buffers.join(""));
-		this.buffers.length = 0;
-		this.size = 0;
+	close(): Promise<void> {
+		if (this.close_fn == null) return Promise.resolve();
+		return this.close_fn();
 	}
 }
