@@ -12,14 +12,13 @@ interface In {
 }
 
 let worker: TypedWorker<In, void>;
-let fa: AsyncFileAppender;
 
 if (isMainThread) {
 	worker = new TypedWorker<In, void>(
 		`${path.dirname(import.meta.filename)}/worker.log.appender.js`,
 	);
 } else {
-	fa = new AsyncFileAppender("./xxx.log", {
+	const fa = new AsyncFileAppender("./xxx.log", {
 		rotation: "minutely",
 	});
 
@@ -28,9 +27,7 @@ if (isMainThread) {
 			await fa.close();
 			return;
 		}
-		if (args.log) {
-			await fa.append(args.log.at, args.log.txt);
-		}
+		await fa.append(args.log!.at, args.log!.txt);
 	});
 }
 
