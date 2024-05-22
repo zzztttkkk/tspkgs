@@ -87,8 +87,14 @@ export class AsyncFileAppender implements Appender {
 			}
 		}
 
-		const filename = `${this.dir}/${this.filename}.${dv}.${this.ext}`;
+		const filename = `${this.dir}/${this.filename}.${dv}${this.ext}`;
 		await fs.promises.rename(this.fp, filename);
+
+		this.rotationbeginat = Date.now();
+		this.rotationendat = AsyncFileAppender.endat(
+			this.rotationbeginat,
+			this.rotation!,
+		);
 	}
 
 	private async flush() {
