@@ -9,7 +9,7 @@ function parse_line(line: string, map: Map<string, string>) {
 	let v = rv.trim();
 
 	if (!k.match(/^[a-zA-Z_][a-zA-Z_0-9]*$/g)) {
-		throw new Error(`ztkpkgs.env: bad key, "${k}"`);
+		throw new Error(`tspkgs.env: bad key, "${k}"`);
 	}
 
 	if ((v.startsWith("'") || v.startsWith('"')) && v[0] === v[v.length - 1]) {

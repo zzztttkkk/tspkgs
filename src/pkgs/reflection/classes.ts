@@ -14,7 +14,7 @@ export function IsSubClassOf(sub: Function, base: Function): boolean {
 	return sub.prototype instanceof base;
 }
 
-export function IsPureDataObject(v: any): boolean {
+export function IsPureObject(v: any): boolean {
 	switch (typeof v) {
 		case "object": {
 			if (v == null) return false;

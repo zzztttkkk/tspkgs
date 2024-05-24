@@ -1,6 +1,5 @@
 import * as path from "path";
 import * as url from "url";
-import { ismain } from "./index.js";
 
 export class Hole<T> {
 	private static insmap = new Map<string, Hole<any>>();
@@ -37,10 +36,9 @@ export class Hole<T> {
 	}
 }
 
-if (ismain(import.meta)) {
-	const hole = new Hole<() => void>(import.meta, "Hole");
-	hole.fill(() => {
-		console.log(1);
-	});
-	hole.expose()();
+export namespace tspkgs {
+	export const holes = {
+		ReflectionRegisterBind: new Hole<(...args: any[]) => any>(import.meta, ""),
+		ReflectionRegisterMerge: new Hole<(...args: any[]) => any>(import.meta, ""),
+	};
 }

@@ -1,3 +1,4 @@
+import { tspkgs } from "../internal/hole.js";
 import { __bind } from "./bind.js";
 import { classof } from "./classes.js";
 import {
@@ -79,3 +80,5 @@ export function merge<T, P extends IMergePropOpts>(
 	}
 	return dest;
 }
+
+tspkgs.holes.ReflectionRegisterMerge.fill(merge);

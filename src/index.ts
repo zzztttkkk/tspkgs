@@ -7,6 +7,7 @@ import * as io from "./pkgs/io/index.js";
 import * as env from "./pkgs/env/index.js";
 import * as args from "./pkgs/args/index.js";
 import * as reflection from "./pkgs/reflection/index.js";
+import * as vld from "./pkgs/vld/index.js";
 
 import { Hole, sleep, ismain, UniqueId, __ } from "./pkgs/internal/index.js";
 import { TypedWorker, Work } from "./pkgs/worker/worker.js";
@@ -24,6 +25,7 @@ export {
 	TypedWorker,
 	Work,
 	reflection,
+	vld,
 };
 
 export const Settings = {

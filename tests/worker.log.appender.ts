@@ -1,7 +1,7 @@
-import path from "path";
 import { isMainThread } from "worker_threads";
 import { TypedWorker, Work } from "../src/index.js";
 import { AsyncFileAppender } from "../src/pkgs/logging/fs.appender.js";
+import { source } from "../src/pkgs/internal/index.js";
 
 interface In {
 	log?: {
@@ -11,12 +11,20 @@ interface In {
 	close?: boolean;
 }
 
-let worker: TypedWorker<In, void>;
+let worker: TypedWorker<In, void> | undefined;
+
+export function append(at: number, log: string): Promise<void> {
+	worker!.exec({ log: { at, txt: log } });
+	return Promise.resolve();
+}
+
+export async function close() {
+	await worker!.exec({ close: true });
+	await worker!.close();
+}
 
 if (isMainThread) {
-	worker = new TypedWorker<In, void>(
-		`${path.dirname(import.meta.filename)}/worker.log.appender.js`,
-	);
+	worker = new TypedWorker<In, void>(source(import.meta));
 } else {
 	const fa = new AsyncFileAppender("./xxx.log", {
 		rotation: "minutely",
@@ -29,14 +37,11 @@ if (isMainThread) {
 		}
 		await fa.append(args.log!.at, args.log!.txt);
 	});
-}
 
-export function append(at: number, log: string): Promise<void> {
-	worker.exec({ log: { at, txt: log } });
-	return Promise.resolve();
-}
-
-export async function close() {
-	await worker.exec({ close: true });
-	await worker.close();
+	(append as any) = () => {
+		throw new Error("not implemented");
+	};
+	(close as any) = () => {
+		throw new Error("not implemented");
+	};
 }

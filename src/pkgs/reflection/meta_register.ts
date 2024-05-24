@@ -1,6 +1,8 @@
 import "reflect-metadata";
 import { IsClass } from "./classes.js";
 import { inspect } from "util";
+import { tspkgs } from "../internal/hole.js";
+import type { IMergeOptions } from "./merge.js";
 
 export class PropInfo<T> {
 	public readonly designtype: any;
@@ -67,6 +69,9 @@ export function metainfo<ClsOpts, PropOpts, MethodOpts>(
 	}
 	return new MetaInfo(register, cls);
 }
+
+const ReflectionRegisterBindHole = tspkgs.holes.ReflectionRegisterBind;
+const ReflectionRegisterMergeHole = tspkgs.holes.ReflectionRegisterMerge;
 
 export class MetaRegister<ClsOpts, PropOpts, MethodOpts> {
 	public readonly name: symbol;
@@ -148,6 +153,14 @@ export class MetaRegister<ClsOpts, PropOpts, MethodOpts> {
 		return (...args) => {
 			console.log(args);
 		};
+	}
+
+	bind<T>(cls: ClassOf<T>, src: any): T {
+		return ReflectionRegisterBindHole.content(this, cls, src);
+	}
+
+	merge<T>(dest: T, srcs: any[], opts?: IMergeOptions<PropOpts>) {
+		return ReflectionRegisterMergeHole.content(this, dest, srcs, opts);
 	}
 }
 

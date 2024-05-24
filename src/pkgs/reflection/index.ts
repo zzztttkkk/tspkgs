@@ -1,4 +1,9 @@
-export { IsClass, IsSubClassOf, IsPureDataObject, classof } from "./classes.js";
+export {
+	IsClass,
+	IsSubClassOf,
+	IsPureObject as IsPureDataObject,
+	classof,
+} from "./classes.js";
 export {
 	PropInfo,
 	MetaRegister,

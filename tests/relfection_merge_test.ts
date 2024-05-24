@@ -17,22 +17,16 @@ class A {
 	bool: boolean = false;
 }
 
-const a1 = reflection.bind(register, A, { str: "a1" });
-
-console.log(a1);
+const a1 = register.bind(A, { str: "a1" });
 
 console.log(
-	reflection.merge(
-		register,
-		a1,
-		[{ num: 45 }, { bool: true }, { str: "xxx" }],
-		{
-			overwrite: (dv, sv, cls, k, p) => {
-				if (cls === A && k === "num" && dv < 10) {
-					return true;
-				}
-				return false;
-			},
+	register.merge(a1, [{ num: 45 }, { bool: true }, { str: "xxx" }], {
+		overwrite: (dv, sv, cls, k, p) => {
+			console.log(dv, sv, cls, k, p);
+			if (cls === A && k === "num" && dv < 10) {
+				return true;
+			}
+			return false;
 		},
-	),
+	}),
 );

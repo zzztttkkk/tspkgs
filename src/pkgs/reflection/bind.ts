@@ -7,6 +7,7 @@ import {
 	TypeValue,
 	metainfo,
 } from "./meta_register.js";
+import { tspkgs } from "../internal/hole.js";
 
 export function __bind(typev: TypeValue, obj: any, hint?: any): any {
 	if (typeof typev === "function") return transform(obj, typev as any, hint);
@@ -113,3 +114,5 @@ export function bind<T, P extends IBindPropOpts>(
 	}
 	return ele;
 }
+
+tspkgs.holes.ReflectionRegisterBind.fill(bind);
