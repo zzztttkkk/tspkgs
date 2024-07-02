@@ -1,10 +1,11 @@
+import "./globals/index.js"; // must be first
+
 import path from "path";
 import url from "url";
 import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
 import { inspect } from "util";
 import * as __ from "./__/index.js";
-import "./globals/index.js";
 
 export { Stack, Hole, __ };
 

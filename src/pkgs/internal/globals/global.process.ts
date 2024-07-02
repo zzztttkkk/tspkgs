@@ -2,18 +2,23 @@ import "./global.types.js";
 
 const BeforeExitActions = [] as Action[];
 
-function RegisterOnShutdownAction(action: Action) {
+function RegisterBeforeShutdownAction(action: Action) {
 	BeforeExitActions.push(action);
 }
 
 let flag = false;
-async function exec() {
+async function exec(v: any) {
 	if (flag) return;
 	flag = true;
 
+	const ps = [] as Promise<any>[];
 	for (const action of BeforeExitActions) {
-		await action();
+		const val: any = action();
+		if (val.then && typeof val.then === "function") {
+			ps.push(val);
+		}
 	}
+	await Promise.allSettled(ps);
 	process.exit(0);
 }
 
@@ -21,8 +26,10 @@ for (const signal of ["SIGINT", "SIGTERM"] as NodeJS.Signals[]) {
 	process.on(signal, exec);
 }
 
-Object.defineProperty(process, "RegisterOnShutdownAction", {
-	value: RegisterOnShutdownAction,
+process.on("beforeExit", exec);
+
+Object.defineProperty(process, "RegisterBeforeShutdownAction", {
+	value: RegisterBeforeShutdownAction,
 	writable: false,
 	configurable: false,
 	enumerable: false,
@@ -31,7 +38,7 @@ Object.defineProperty(process, "RegisterOnShutdownAction", {
 declare global {
 	namespace NodeJS {
 		interface Process {
-			RegisterOnShutdownAction: (action: Action) => void;
+			RegisterBeforeShutdownAction: (action: Action) => void;
 		}
 	}
 }
