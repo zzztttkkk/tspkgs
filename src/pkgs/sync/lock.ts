@@ -4,6 +4,8 @@ import { Stack } from "../internal/stack.js";
 
 type Waiter = () => void;
 
+export const ErrLockIsFree = new Error("the lock is free");
+
 export class Lock implements Disposable {
 	private locked = false;
 	private readonly waiters: Stack<Waiter>;
@@ -15,13 +17,15 @@ export class Lock implements Disposable {
 	async acquire() {
 		if (this.locked) {
 			await new Promise<void>((resolve) => this.waiters.push(resolve));
-			return this;
+		} else {
+			this.locked = true;
 		}
-		this.locked = true;
 		return this;
 	}
 
 	release() {
+		if (!this.locked) throw ErrLockIsFree;
+
 		if (this.waiters.empty()) {
 			this.locked = false;
 			return;
