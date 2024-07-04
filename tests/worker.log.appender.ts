@@ -37,11 +37,4 @@ if (isMainThread) {
 		}
 		await fa.append(args.log!.at, args.log!.txt);
 	});
-
-	(append as any) = () => {
-		throw new Error("not implemented");
-	};
-	(close as any) = () => {
-		throw new Error("not implemented");
-	};
 }

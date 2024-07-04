@@ -5,16 +5,19 @@ import { AbsDispatcher, With } from "../src/pkgs/logging/logger.js";
 import { JSONRenderer, Renderer } from "../src/pkgs/logging/renderer.js";
 import { append, close } from "./worker.log.appender.js";
 
-process.RegisterOnShutdownAction(async () => {
+process.RegisterBeforeShutdownAction(async () => {
 	await close();
+	console.log(">>>>>>>>>>>>CLOSE LOGGER<<<<<<<<<<<<<<");
 });
 
 class Dispatcher extends AbsDispatcher {
-	private renderer = new JSONRenderer("yyyy-MM-dd HH:mm:ss.SSS Z");
+	private renderer = new JSONRenderer({
+		timelayout: "yyyy-MM-dd HH:mm:ss.SSS Z",
+	});
 	private appender = new FuncAppender(append, close);
 
 	protected dispatch(
-		item: Item,
+		_: Item,
 	): { renderer: Renderer; appender: Appender } | null | undefined {
 		return {
 			renderer: this.renderer,

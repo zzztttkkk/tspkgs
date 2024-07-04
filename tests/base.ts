@@ -1,4 +1,5 @@
 import assert from "assert";
+import { Strings } from "../src/pkgs/strings.js";
 
 export function equal(a: any, b: any) {
 	assert.strictEqual(a, b);
@@ -23,3 +24,11 @@ export class Namespace {
 		return `${this.#name}.${f.name}`;
 	}
 }
+
+console.log(
+	Strings.padding(
+		"hello world",
+		{ txt: "=", count: 10 },
+		{ $SameAsLeft: true },
+	),
+);

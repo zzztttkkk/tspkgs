@@ -51,17 +51,25 @@ export class SimpleLineRenderer implements Renderer {
 export class JSONRenderer implements Renderer {
 	private _render_fn: (item: Item) => string;
 
-	constructor(timelayout?: string) {
-		if (timelayout) {
+	constructor(opts?: { timelayout?: string; rawlevel?: boolean }) {
+		if (opts?.timelayout) {
 			this._render_fn = (item: Item) => {
 				return JSON.stringify({
 					...item,
-					at: DateTime.fromMillis(item.at).toFormat(timelayout),
+					at: DateTime.fromMillis(item.at).toFormat(opts!.timelayout!),
 				});
 			};
 		} else {
 			this._render_fn = (item: Item) => {
 				return JSON.stringify(item);
+			};
+		}
+
+		if (!opts?.rawlevel) {
+			const fn = this._render_fn;
+			this._render_fn = (item: Item) => {
+				const ele = { ...item, level: LevelStrings[item.level] };
+				return fn(ele as any);
 			};
 		}
 	}
