@@ -1,5 +1,5 @@
 {
-	"$schema": "https://json.schemastore.org/swcrc",
+	"$schema": "https://swc.rs/schema.json",
 	"jsc": {
 		"parser": {
 			"syntax": "typescript",
@@ -12,8 +12,10 @@
 		"externalHelpers": true,
 		"keepClassNames": true,
 		"transform": {
-			"decoratorMetadata": true
-		}
+			"decoratorMetadata": true,
+			"legacyDecorator": true
+		},
+		"preserveAllComments": true
 	},
 	"minify": false,
 	"sourceMaps": true,

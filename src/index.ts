@@ -10,6 +10,7 @@ import * as reflection from "./pkgs/reflection/index.js";
 
 import { Hole, sleep, ismain, UniqueId, __ } from "./pkgs/internal/index.js";
 import { TypedWorker, Work } from "./pkgs/worker/worker.js";
+import { TimeLogger } from "./pkgs/timelogger.js";
 
 export {
 	__,
@@ -24,6 +25,7 @@ export {
 	TypedWorker,
 	Work,
 	reflection,
+	TimeLogger,
 };
 
 export const Settings = {
