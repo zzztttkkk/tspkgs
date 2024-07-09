@@ -61,7 +61,7 @@ process.argv = process.argv.concat(["-h"]);
 
 await args.Run(Cmds);
 
-process.RegisterOnShutdownAction(async () => {
+process.RegisterBeforeShutdownAction(async () => {
 	console.log(">>>>>>>>>>>", "SHUTDOWN");
 	await sleep(1000);
 	console.log("!!!!");

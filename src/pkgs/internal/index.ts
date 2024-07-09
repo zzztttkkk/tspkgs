@@ -9,10 +9,9 @@ import * as __ from "./__/index.js";
 
 export { Stack, Hole, __ };
 
+const ProcessEntry = path.resolve(process.argv[1]);
 export function ismain(meta: ImportMeta): boolean {
-	return (
-		path.resolve(url.fileURLToPath(meta.url)) === path.resolve(process.argv[1])
-	);
+	return path.resolve(url.fileURLToPath(meta.url)) === ProcessEntry;
 }
 
 export function source(meta: ImportMeta): string {
@@ -23,10 +22,11 @@ export function sourcedir(meta: ImportMeta): string {
 	return path.dirname(source(meta));
 }
 
-export function sleep(ms: number): Promise<void> {
-	return new Promise<void>((resolve) => {
-		setTimeout(resolve, Math.ceil(ms));
-	});
+export function sleep<T>(ms: number, v?: T): Promise<T | undefined> {
+	if (ms < 1) {
+		return new Promise((resolve) => setImmediate(() => resolve(v)));
+	}
+	return new Promise((resolve) => setTimeout(() => resolve(v), Math.ceil(ms)));
 }
 
 // https://stackoverflow.com/a/1997811/6683474
