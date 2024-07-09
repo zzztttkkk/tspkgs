@@ -9,10 +9,9 @@ import * as __ from "./__/index.js";
 
 export { Stack, Hole, __ };
 
+const ProcessEntry = path.resolve(process.argv[1]);
 export function ismain(meta: ImportMeta): boolean {
-	return (
-		path.resolve(url.fileURLToPath(meta.url)) === path.resolve(process.argv[1])
-	);
+	return path.resolve(url.fileURLToPath(meta.url)) === ProcessEntry;
 }
 
 export function source(meta: ImportMeta): string {

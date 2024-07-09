@@ -15,7 +15,7 @@ function transform<T>(src: any, cls: ClassOf<T>, hint?: any): T {
 		throw new Error(
 			`pkgs.transform: ${inspect(cls)}.${inspect(
 				TransformSymbol,
-			)} is not a function`,
+			)} is not a function, note that it should be a static method`,
 		);
 	}
 	return fn(src, hint);
@@ -62,13 +62,13 @@ Object.defineProperty(String, TransformSymbol, {
 	enumerable: false,
 	value: function (src: any): string {
 		if (typeof src == "undefined") {
-			throw new Error(`can not trhansform undefined to String`);
+			throw new Error(`can not transform undefined to String`);
 		}
 		return src.toString();
 	},
 });
 
-const truths = ["TRUE", "T", "1"];
+const truths = ["TRUE", "true", "OK", "ok", "YES", "yes"];
 
 let DefaultBoolTransformHint: __pkgs.BooleanTransformHint = { directly: true };
 
@@ -118,11 +118,11 @@ declare global {
 		src: any,
 		cls: NumberConstructor,
 		hint?: __pkgs.NumberTransformHint,
-	): Number;
+	): number;
 	function transform(
 		src: any,
 		cls: BooleanConstructor,
 		hint?: __pkgs.BooleanTransformHint,
-	): Boolean;
+	): boolean;
 	function transform<T>(src: any, cls: ClassOf<T>, hint?: any): T;
 }
