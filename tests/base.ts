@@ -25,6 +25,10 @@ export class Namespace {
 	}
 }
 
+interface IPointTransformHits {
+	isjsonstring?: boolean;
+}
+
 class Point {
 	#x: number;
 	#y: number;
@@ -34,26 +38,36 @@ class Point {
 		this.#y = y;
 	}
 
-	static [Symbol.transform](v: any, hint?: any): Point {
+	toJSON() {
+		return { x: this.#x, y: this.#y };
+	}
+
+	static [Symbol.transform](v: any, hint?: IPointTransformHits): Point {
 		if (v instanceof Point) {
 			return new Point(v.#x, v.#y);
 		}
 
 		switch (typeof v) {
 			case "string": {
-				throw new Error(`todo`);
+				if (hint?.isjsonstring) {
+					return transform(JSON.parse(v), Point);
+				}
+				if (v.includes(",")) {
+					const [a, b] = v.split(",");
+					return new Point(transform(a, Number), transform(b, Number));
+				}
+				throw new Error(`Cannot transform ${v} to Point`);
 			}
 			case "object": {
 				if (Array.isArray(v) && v.length == 2) {
 					return new Point(transform(v[0], Number), transform(v[1], Number));
 				}
 
-				if (v.x == null && typeof v.y == null) {
+				if (v.x != null && v.y != null) {
 					return new Point(transform(v.x, Number), transform(v.y, Number));
 				}
 			}
 		}
-
 		throw new Error(`Cannot transform ${v} to Point`);
 	}
 
@@ -66,4 +80,4 @@ class Point {
 	}
 }
 
-console.log(transform(["12", "45"], Point));
+console.log(transform(" 23, 45 ", Point));

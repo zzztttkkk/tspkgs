@@ -34,9 +34,11 @@ Object.defineProperty(Number, TransformSymbol, {
 	value: function (src: any, hint?: __pkgs.NumberTransformHint): number {
 		switch (typeof src) {
 			case "string": {
-				return src.includes(".")
+				const num = src.includes(".")
 					? Number.parseFloat(src)
 					: Number.parseInt(src, hint?.radix);
+				if (Number.isNaN(num)) throw new Error(`${src} is not a number`);
+				return num;
 			}
 			case "number": {
 				return src;
