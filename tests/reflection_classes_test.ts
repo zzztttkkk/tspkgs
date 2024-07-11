@@ -27,4 +27,3 @@ test(ns.func(IsSubClassOf), () => {
 	equal(IsSubClassOf(A, Object), true);
 	require_true(IsSubClassOf(Number, Object));
 });
-

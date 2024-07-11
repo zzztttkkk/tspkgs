@@ -1,4 +1,5 @@
-import { Worker, parentPort, threadId } from "worker_threads";
+import { cpus } from "os";
+import { Worker, isMainThread, parentPort, threadId } from "worker_threads";
 
 interface Msg<T> {
 	id: bigint;
@@ -130,12 +131,13 @@ export class TypedWorkerPool<Input, Output> {
 		file: string,
 		policy?: TypedWorkerPoolDispatchPolicy,
 	) {
+		if (size < 1) size = CPU_NUMS;
 		this.workers = [];
 		for (let i = 0; i < size; i++) {
 			this.workers.push(new TypedWorker<Input, Output>(file));
 		}
 		if (this.workers.length < 1) {
-			throw new Error(`bad size`);
+			throw new Error(`bad size: ${size}`);
 		}
 		policy = policy || TypedWorkerPoolDispatchPolicy.Random;
 		switch (policy) {
@@ -171,7 +173,7 @@ interface ICallbacks {
 	Cancele: null | (() => void);
 }
 
-export function Work<Input, Output>(
+export function exec<Input, Output>(
 	fn: (i: Input, hooks: Hooks) => Promise<Output> | Output,
 ) {
 	if (threads.has(threadId)) {
@@ -219,3 +221,13 @@ export function Work<Input, Output>(
 		}
 	});
 }
+
+export function ismain(): boolean {
+	return isMainThread;
+}
+
+export function id(): number {
+	return threadId;
+}
+
+export const CPU_NUMS = cpus().length;

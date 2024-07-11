@@ -9,7 +9,7 @@ import * as args from "./pkgs/args/index.js";
 import * as reflection from "./pkgs/reflection/index.js";
 
 import { Hole, sleep, ismain, UniqueId, __ } from "./pkgs/internal/index.js";
-import { TypedWorker, Work } from "./pkgs/worker/worker.js";
+import * as threadinds from "./pkgs/worker/worker.js";
 import { TimeLogger } from "./pkgs/timelogger.js";
 
 export {
@@ -22,8 +22,7 @@ export {
 	env,
 	ismain,
 	UniqueId,
-	TypedWorker,
-	Work,
+	threadinds,
 	reflection,
 	TimeLogger,
 };

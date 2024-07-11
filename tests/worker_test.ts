@@ -1,6 +1,4 @@
-import { isMainThread, threadId } from "worker_threads";
-import { cpus } from "os";
-import { TypedWorkerPool, Work } from "../src/pkgs/worker/worker.js";
+import { threadinds } from "../src/index.js";
 import { sleep, source } from "../src/pkgs/internal/index.js";
 
 interface Params {
@@ -13,16 +11,16 @@ interface Result {
 	tid: number;
 }
 
-if (isMainThread) {
-	const pool = new TypedWorkerPool<Params, Result>(
-		cpus().length,
+if (threadinds.ismain()) {
+	const pool = new threadinds.TypedWorkerPool<Params, Result>(
+		-1,
 		source(import.meta),
 	);
 	const ps = [] as Promise<any>[];
-	for (let i = 0; i < 100; i++) {
+	for (let i = 0; i < 1000; i++) {
 		ps.push(
 			pool
-				.exec({ a: i, b: 4 }, { Timeout: 300 })
+				.exec({ a: i, b: 4 }, { Timeout: 500 })
 				.then((v) => {
 					console.log(`${i} + 4 = ${v.sum}, @ Thread ${v.tid}`);
 				})
@@ -35,8 +33,8 @@ if (isMainThread) {
 	await Promise.all(ps);
 	process.exit(0);
 } else {
-	Work<Params, Result>(async (params) => {
-		await sleep(100);
-		return { sum: params.a + params.b, tid: threadId };
+	threadinds.exec<Params, Result>(async (params) => {
+		await sleep(80);
+		return { sum: params.a + params.b, tid: threadinds.id() };
 	});
 }
