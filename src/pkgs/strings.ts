@@ -24,4 +24,19 @@ export class Strings {
 		}
 		return [lv, v, rv].join("");
 	}
+
+	public static split(v: string, ...seps: string[]): string[] {
+		if (seps.length == 0) return [v];
+		if (seps.length === 1) return v.split(seps[0]);
+
+		let tmp: string | string[] = v;
+		for (const sep of seps) {
+			if (Array.isArray(tmp)) {
+				tmp = tmp.flatMap((v) => v.split(sep));
+			} else {
+				tmp = tmp.split(sep);
+			}
+		}
+		return tmp as string[];
+	}
 }

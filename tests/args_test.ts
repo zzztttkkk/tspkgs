@@ -1,4 +1,5 @@
 import { args, sleep } from "../src/index.js";
+import { Strings } from "../src/pkgs/strings.js";
 
 class AAA extends args.AbsCmd<AA, Cmds> {
 	run(parent?: AA, top?: Cmds): Promise<void> {
@@ -66,6 +67,8 @@ process.RegisterBeforeShutdownAction(async () => {
 	await sleep(1000);
 	console.log("!!!!");
 });
+
+console.log(Strings.split("a-b,m;r|d", "-", ",", ";", "|"));
 
 console.log(">>>>>>>>>>>>>>>>", process.pid);
 while (true) {
