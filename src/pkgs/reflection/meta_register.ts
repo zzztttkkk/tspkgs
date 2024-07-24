@@ -18,27 +18,26 @@ export class PropInfo<T> {
 	}
 }
 
-class MethodInfo<T> {
-	public readonly paramtypes: any[];
-	public readonly returntype: any;
-	public readonly opts?: T;
+class MethodInfo<T, A> {
+	public paramtypes: any[] | undefined;
+	public returntype: any | undefined;
+	public opts?: T;
+	public readonly paramopts: Map<number, A | undefined>;
 
-	constructor(paramtypes: any[], returntype: any, opts?: T) {
-		this.paramtypes = paramtypes;
-		this.returntype = returntype;
-		this.opts = opts;
+	constructor() {
+		this.paramopts = new Map();
 	}
 }
 
 type PropsMetaMap<T> = Map<string, PropInfo<T>>;
-type MethodsMetaMap<T> = Map<string, MethodInfo<T>>;
+type MethodsMetaMap<T, A> = Map<string, MethodInfo<T, A>>;
 
-class MetaInfo<ClsOpts, PropOpts, MethodOpts> {
+class MetaInfo<ClsOpts, PropOpts, MethodOpts, ParamOpts> {
 	#cls: Function;
-	#register: MetaRegister<ClsOpts, PropOpts, MethodOpts>;
+	#register: MetaRegister<ClsOpts, PropOpts, MethodOpts, ParamOpts>;
 
 	constructor(
-		register: MetaRegister<ClsOpts, PropOpts, MethodOpts>,
+		register: MetaRegister<ClsOpts, PropOpts, MethodOpts, ParamOpts>,
 		cls: Function,
 	) {
 		this.#register = register;
@@ -55,15 +54,20 @@ class MetaInfo<ClsOpts, PropOpts, MethodOpts> {
 		return this.#register._propsMetaData.get(this.#cls);
 	}
 
+	methods(): MethodsMetaMap<MethodOpts, ParamOpts> | undefined {
+		//@ts-ignore,
+		return this.#register._methodsMetaData.get(this.#cls);
+	}
+
 	prop(name: string): PropInfo<PropOpts> | undefined {
 		return this.props()?.get(name);
 	}
 }
 
-export function metainfo<ClsOpts, PropOpts, MethodOpts>(
-	register: MetaRegister<ClsOpts, PropOpts, MethodOpts>,
+export function metainfo<ClsOpts, PropOpts, MethodOpts, ParamOpts>(
+	register: MetaRegister<ClsOpts, PropOpts, MethodOpts, ParamOpts>,
 	cls: Function,
-): MetaInfo<ClsOpts, PropOpts, MethodOpts> {
+): MetaInfo<ClsOpts, PropOpts, MethodOpts, ParamOpts> {
 	if (!IsClass(cls)) {
 		throw new Error(`${inspect(cls)} is not a class`);
 	}
@@ -73,12 +77,20 @@ export function metainfo<ClsOpts, PropOpts, MethodOpts>(
 const ReflectionRegisterBindHole = tspkgs.holes.ReflectionRegisterBind;
 const ReflectionRegisterMergeHole = tspkgs.holes.ReflectionRegisterMerge;
 
-export class MetaRegister<ClsOpts, PropOpts, MethodOpts> {
+export class MetaRegister<
+	ClsOpts = unknown,
+	PropOpts = unknown,
+	MethodOpts = unknown,
+	ParamOpts = unknown,
+> {
 	public readonly name: symbol;
 
 	private readonly _clsMetaData: Map<Function, ClsOpts>;
 	private readonly _propsMetaData: Map<Function, PropsMetaMap<PropOpts>>;
-	private readonly _methodsMetaData: Map<Function, MethodsMetaMap<MethodOpts>>;
+	private readonly _methodsMetaData: Map<
+		Function,
+		MethodsMetaMap<MethodOpts, ParamOpts>
+	>;
 
 	constructor(name: symbol) {
 		this.name = name;
@@ -135,23 +147,45 @@ export class MetaRegister<ClsOpts, PropOpts, MethodOpts> {
 
 			const cls: Function = target.constructor;
 
-			let pm: MethodsMetaMap<MethodOpts>;
+			let pm: MethodsMetaMap<MethodOpts, ParamOpts>;
 			pm = this._methodsMetaData.get(cls) || new Map();
-			pm.set(
+
+			let methodinfo = pm.get(key as string);
+			if (!methodinfo) methodinfo = new MethodInfo();
+
+			methodinfo.paramtypes = Reflect.getMetadata(
+				"design:paramtypes",
+				target,
 				key,
-				new MethodInfo(
-					Reflect.getMetadata("design:paramtypes", target, key),
-					Reflect.getMetadata("design:returntype", target, key),
-					opts,
-				),
 			);
+			methodinfo.returntype = Reflect.getMetadata(
+				"design:returntype",
+				target,
+				key,
+			);
+			methodinfo.opts = opts;
+
+			pm.set(key, methodinfo);
 			this._methodsMetaData.set(cls, pm);
 		};
 	}
 
-	param(): ParameterDecorator {
-		return (...args) => {
-			console.log(args);
+	param(opts?: ParamOpts): ParameterDecorator {
+		return (target, key, param_idx) => {
+			if (typeof key === "symbol") {
+				throw new Error(`decorator can not on a symbol`);
+			}
+
+			const cls: Function = target.constructor;
+			let pm: MethodsMetaMap<MethodOpts, ParamOpts>;
+			pm = this._methodsMetaData.get(cls) || new Map();
+
+			let methodinfo = pm.get(key as string);
+			if (!methodinfo) methodinfo = new MethodInfo();
+			methodinfo.paramopts.set(param_idx, opts);
+
+			pm.set(key as string, methodinfo);
+			this._methodsMetaData.set(cls, pm);
 		};
 	}
 
