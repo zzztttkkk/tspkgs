@@ -63,7 +63,15 @@ export class RwLock {
 			return;
 		}
 
-		if (this.waiters.peek().w) return;
+		if (this.waiters.peek().w) {
+			this.readings--;
+			if (this.readings < 1) {
+				this.writing = true;
+				this.waiters.pop().resolve();
+			}
+			return;
+		}
+
 		this.waiters.pop().resolve();
 	}
 
@@ -75,12 +83,10 @@ export class RwLock {
 				this.waiters.push({ resolve, w: true });
 				this.lock.release();
 			});
-			return new ReleaseHandle(this.releasew.bind(this));
+		} else {
+			this.writing = true;
+			this.lock.release();
 		}
-
-		this.writing = true;
-
-		this.lock.release();
 		return new ReleaseHandle(this.releasew.bind(this));
 	}
 
@@ -92,12 +98,10 @@ export class RwLock {
 				this.waiters.push({ resolve, w: false });
 				this.lock.release();
 			});
-			return new ReleaseHandle(this.releaser.bind(this));
+		} else {
+			this.readings++;
+			this.lock.release();
 		}
-
-		this.readings++;
-		this.lock.release();
-
 		return new ReleaseHandle(this.releaser.bind(this));
 	}
 }

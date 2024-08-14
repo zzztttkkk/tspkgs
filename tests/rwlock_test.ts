@@ -9,7 +9,7 @@ for (let i = 0; i < 10; i++) {
 		(async (idx: number) => {
 			await using _ = await lock.acquirew();
 			await sleep(100);
-			console.log("W", idx, Date.now());
+			console.log("W", idx, Date.unix());
 		})(i),
 	);
 }
@@ -22,7 +22,7 @@ for (let i = 0; i < 100; i++) {
 		(async (idx: number) => {
 			await using _ = await lock.acquirer();
 			await sleep(100);
-			console.log("R", idx, Date.now());
+			console.log("R", idx, Date.unix());
 		})(i),
 	);
 }
