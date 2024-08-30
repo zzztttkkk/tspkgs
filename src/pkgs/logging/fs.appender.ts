@@ -64,7 +64,7 @@ export class AsyncFileAppender implements Appender {
 	}
 
 	private async rotate(at: number) {
-		if (!this.rotation == null) return;
+		if (this.rotation == null) return;
 		if (at <= this.rotationendat) return;
 
 		await this.flush();

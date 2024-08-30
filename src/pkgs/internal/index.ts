@@ -6,6 +6,7 @@ import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
 import { inspect } from "util";
 import * as __ from "./__/index.js";
+import * as fs from "fs/promises";
 
 export { Stack, Hole, __ };
 
@@ -20,6 +21,30 @@ export function source(meta: ImportMeta): string {
 
 export function sourcedir(meta: ImportMeta): string {
 	return path.dirname(source(meta));
+}
+
+export async function projectroot(meta: ImportMeta): Promise<string> {
+	let cursor = sourcedir(meta);
+
+	function next() {
+		const cd = path.dirname(cursor);
+		if (cd === cursor) {
+			throw new Error(`Cannot find package.json by ${sourcedir(meta)}`);
+		}
+		cursor = path.dirname(cursor);
+	}
+
+	while (true) {
+		try {
+			const stat = await fs.stat(`${cursor}/package.json`);
+			if (stat.isFile()) {
+				return cursor;
+			}
+			next();
+		} catch (e) {
+			next();
+		}
+	}
 }
 
 export function sleep<T>(ms: number, v?: T): Promise<T | undefined> {
