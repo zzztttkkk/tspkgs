@@ -10,8 +10,15 @@ select * from user
 	where -- comment4 inline
 	id = 1;
 
-   -- comment3.2
+/*
+	@regexp username /[a-zA-Z]+/g
+	@paramdesc id 用户id
+	@paramdesc name 用户名称
+	@paramcheck name length(10,) regexp(username)
+	@paramdesc age 用户年龄
+	@paramcheck age range(18,)
+*/
 select * from spk -- comment5 inline
-	where id = ${i d:int} and name = ${name:string}
+	where id = ${id:int} and name = ${name:string}
 	and age = ${age:int}
 ;
