@@ -1,7 +1,14 @@
+type ValidateFunction = (v: any) => string | null;
+
 interface Param {
 	name: string;
 	type?: string;
+	desc?: string;
+	validator?: ValidateFunction;
 }
+
+const ParamDefinitionRegexp = /@param\s+(?<paramname>\w+)\s+(?<funcs>.*)/g;
+const FunctionRegexp = /((?<name>\w)\s*\(.*?\))+/g;
 
 interface Stmt {
 	comments: string[];
@@ -26,33 +33,37 @@ function isasciiletter(c: string): boolean {
 }
 
 function isinlinespace(c: string): boolean {
-	return c === " " || c === "\t";
-}
-
-//
-function isinlinecomment(doc: string, idx: number): boolean {
-	idx--;
-	while (idx > 0) {
-		const cc = doc[idx];
-		if (isinlinespace(cc)) {
-			idx--;
-			continue;
-		}
-		if (cc === "\n") {
-			return false;
-		}
-		return true;
-	}
-	return false;
+	return c === " " || c === "\t" || c === "\r";
 }
 
 export class Sqls {
+	private static params(stmts: Stmt[]): Stmt[] {
+		for (const stmt of stmts) {
+			if (stmt.params.length < 1) continue;
+
+			for (let line of stmt.comments.flatMap((v) => v.split("\n"))) {
+				line = line.trim();
+				console.log(">>>", line);
+				const match = ParamDefinitionRegexp.exec(line);
+				if (!match) continue;
+				const param = stmt.params.find(
+					(ele) => ele.name === match.groups?.paramname,
+				);
+				if (!param) {
+					console.log(match.groups?.paramname);
+					continue;
+				}
+				console.log(param.name, match.groups?.funcs);
+			}
+		}
+		return stmts;
+	}
+
 	static scan(doc: string): Stmt[] {
 		const stmts: Stmt[] = [];
 
 		let escaped = false;
 		let incomments: InCommentsState | null = null;
-		let currentcommentsisinline = false;
 		let qouted = "";
 		let inparams: InParamState | null = null;
 
@@ -82,14 +93,12 @@ export class Sqls {
 			}
 
 			if (incomments) {
-				commentstmp.push(cc);
 				if (incomments === InCommentsState.Single) {
 					if (cc == "\n") {
-						if (!currentcommentsisinline) {
-							stmt.comments.push(commentstmp.join(""));
-						}
+						stmt.comments.push(commentstmp.join(""));
 						commentstmp.length = 0;
 						incomments = null;
+						continue;
 					}
 				} else {
 					if (cc === "*" && nc === "/") {
@@ -97,8 +106,10 @@ export class Sqls {
 						commentstmp.length = 0;
 						incomments = null;
 						ignoreone = true;
+						continue;
 					}
 				}
+				commentstmp.push(cc);
 				continue;
 			}
 
@@ -116,7 +127,6 @@ export class Sqls {
 
 			if (cc === "-" && nc === "-") {
 				incomments = InCommentsState.Single;
-				currentcommentsisinline = isinlinecomment(doc, i);
 				commentstmp.length = 0;
 				ignoreone = true;
 				continue;
@@ -165,14 +175,10 @@ export class Sqls {
 							stmt.params.push({ name: name });
 							break;
 						}
-						if (cc === "}") {
-							const name = getparamtmp("name");
-							inparams = null;
-							stmt.params.push({ name: name });
-							break;
-						}
 						if (!isasciiletter(cc)) {
-							throw new Error("unexpected character");
+							throw new Error(
+								"unexpected character, expecting `:` for parameter type being or any other character for parameter name",
+							);
 						}
 						paramstmp.push(cc);
 						break;
@@ -185,11 +191,9 @@ export class Sqls {
 							inparams = InParamState.InType;
 							break;
 						}
-						if (cc === "}") {
-							inparams = null;
-							break;
-						}
-						throw new Error("unexpected character");
+						throw new Error(
+							"unexpected character, expecting `:` for parameter type being",
+						);
 					}
 					case InParamState.InType: {
 						if (isinlinespace(cc)) {
@@ -281,6 +285,6 @@ export class Sqls {
 				ele.sql = ele.sql.filter((txt) => txt !== "");
 			}
 		});
-		return stmts.filter((ele) => ele.sql.length > 0);
+		return this.params(stmts.filter((ele) => ele.sql.length > 0));
 	}
 }
