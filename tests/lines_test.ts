@@ -1,4 +1,4 @@
-import * as fs from "fs/promises";
+import * as fs from "node:fs/promises";
 import { asyncenumerate, io } from "../src/index.js";
 
 const cf = await fs.open(import.meta.filename, "r");

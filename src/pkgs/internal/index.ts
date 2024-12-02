@@ -1,12 +1,12 @@
 import "./globals/index.js"; // must be first
 
-import path from "path";
-import url from "url";
+import path from "node:path";
+import url from "node:url";
 import { Stack } from "./stack.js";
 import { Hole } from "./hole.js";
-import { inspect } from "util";
+import { inspect } from "node:util";
 import * as __ from "./__/index.js";
-import * as fs from "fs/promises";
+import * as fs from "node:fs/promises";
 
 export { Stack, Hole, __ };
 

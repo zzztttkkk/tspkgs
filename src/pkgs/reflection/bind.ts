@@ -1,10 +1,10 @@
-import { inspect } from "util";
+import { inspect } from "node:util";
 import {
 	ArrayType,
 	MapType,
-	MetaRegister,
+	type MetaRegister,
 	SetType,
-	TypeValue,
+	type TypeValue,
 	metainfo,
 } from "./meta_register.js";
 import { tspkgs } from "../internal/hole.js";
@@ -74,7 +74,9 @@ export function __bind(typev: TypeValue, obj: any, hint?: any): any {
 		}
 		return map;
 	}
-	Object.entries(obj).forEach(([k, v]) => add(k, v));
+	for (const [k, v] of Object.entries(obj)) {
+		add(k, v);
+	}
 	return map;
 }
 

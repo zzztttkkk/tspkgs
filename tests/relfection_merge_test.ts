@@ -1,6 +1,6 @@
 import { reflection } from "../src/index.js";
 
-interface PropOptions extends reflection.IMergePropOpts {}
+interface PropOptions extends reflection.IMergePropOpts { }
 
 const register = new reflection.MetaRegister<unknown, PropOptions, unknown>(
 	Symbol("MergeTest"),
@@ -8,13 +8,13 @@ const register = new reflection.MetaRegister<unknown, PropOptions, unknown>(
 
 class A {
 	@register.prop()
-	str: string = "";
+	str = "";
 
 	@register.prop()
-	num: number = 0;
+	num = 0;
 
 	@register.prop()
-	bool: boolean = false;
+	bool = false;
 }
 
 const a1 = register.bind(A, { str: "a1" });

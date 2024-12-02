@@ -1,4 +1,4 @@
-import { inspect } from "util";
+import { inspect } from "node:util";
 import { __ } from "../internal/index.js";
 
 const TransformSymbol = Symbol("pkgs:transform");
@@ -31,7 +31,7 @@ Object.defineProperty(Number, TransformSymbol, {
 	configurable: false,
 	writable: false,
 	enumerable: false,
-	value: function (src: any, hint?: __pkgs.NumberTransformHint): number {
+	value: (src: any, hint?: __pkgs.NumberTransformHint): number => {
 		switch (typeof src) {
 			case "string": {
 				const num = src.includes(".")
@@ -62,8 +62,8 @@ Object.defineProperty(String, TransformSymbol, {
 	configurable: false,
 	writable: false,
 	enumerable: false,
-	value: function (src: any): string {
-		if (typeof src == "undefined") {
+	value: (src: any): string => {
+		if (typeof src === "undefined") {
 			throw new Error(`can not transform undefined to String`);
 		}
 		return src.toString();
@@ -82,7 +82,7 @@ Object.defineProperty(Boolean, TransformSymbol, {
 	configurable: false,
 	writable: false,
 	enumerable: false,
-	value: function (src: any, hint?: __pkgs.BooleanTransformHint): boolean {
+	value: (src: any, hint?: __pkgs.BooleanTransformHint): boolean => {
 		hint = hint || DefaultBoolTransformHint;
 
 		if (hint?.directly) return Boolean(src);
@@ -92,7 +92,7 @@ Object.defineProperty(Boolean, TransformSymbol, {
 		if (type === "boolean") return src;
 		if (type === "number" || type === "bigint") return Boolean(src);
 
-		const val = type == "string" ? src : transform(src, String);
+		const val = type === "string" ? src : transform(src, String);
 		const _ts = (hint?.truths || truths) as string[];
 		if (hint?.casesensitive) return _ts.includes(val);
 		const uv = val.toUpperCase();

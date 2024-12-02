@@ -1,11 +1,11 @@
-import * as process from "process";
-import fs from "fs/promises";
+import * as process from "node:process";
+import fs from "node:fs/promises";
 import {
 	MetaRegister,
 	metainfo,
 	type PropInfo,
 } from "../reflection/meta_register.js";
-import { inspect } from "util";
+import { inspect } from "node:util";
 import "../transform/index.js";
 
 const InstanceCache = new Map<any, any>();
@@ -23,9 +23,10 @@ function get(
 	keys = keys.filter((v) => Boolean(v)).map((v) => v!.toUpperCase());
 
 	const tmp = {} as any;
-	Object.keys(obj).forEach((k) => {
+	for (const k of Object.keys(obj)) {
 		tmp[k.toUpperCase()] = obj[k];
-	});
+	}
+
 
 	for (const key of keys) {
 		const v = tmp[key!];
@@ -147,12 +148,8 @@ export async function GenerateExampleIni<T>(cls: new () => T, fp: string) {
 				}
 			}
 		}
-
-		if (opts && opts.description && opts.description === "--") {
-			continue;
-		}
-
-		if (opts && opts.description) {
+		if (opts?.description) {
+			if (opts.description.startsWith("--")) continue;
 			lines.push(`# ${opts.description || ""}`);
 		}
 
@@ -160,7 +157,7 @@ export async function GenerateExampleIni<T>(cls: new () => T, fp: string) {
 			lines.push(`# optional`);
 		}
 
-		let line = `${k} = `;
+		const line = `${k} = `;
 		lines.push(line);
 		lines.push("");
 	}

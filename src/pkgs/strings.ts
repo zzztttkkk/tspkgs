@@ -26,7 +26,7 @@ export class Strings {
 	}
 
 	public static split(v: string, ...seps: string[]): string[] {
-		if (seps.length == 0) return [v];
+		if (seps.length === 0) return [v];
 		if (seps.length === 1) return v.split(seps[0]);
 
 		let tmp: string | string[] = v;

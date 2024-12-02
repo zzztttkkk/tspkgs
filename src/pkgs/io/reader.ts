@@ -1,4 +1,4 @@
-import { createConnection, createServer } from "net";
+import { createConnection, createServer } from "node:net";
 import { Stack } from "../internal/stack.js";
 import { ismain, sleep } from "../internal/index.js";
 
@@ -34,8 +34,8 @@ class BufferChain {
 	private chain: Buffer[];
 	private readonly allocsize: number;
 	private current?: Buffer;
-	private cursor: number = 0;
-	private diff: number = 0;
+	private cursor = 0;
+	private diff = 0;
 
 	constructor(allocSize?: number) {
 		this.chain = [];
@@ -46,7 +46,7 @@ class BufferChain {
 		buf: Buffer,
 		start: number,
 		end: number,
-		allowKeepRef: boolean = false,
+		allowKeepRef = false,
 	) {
 		if (allowKeepRef) {
 			if (
@@ -249,7 +249,7 @@ export class Reader {
 					return;
 				}
 
-				if (opts && opts.maxsize && tmps.size > opts.maxsize) {
+				if (opts?.maxsize && tmps.size > opts.maxsize) {
 					this.error = ReachMaxSizeError;
 					this.reject(this.error);
 					return;
@@ -276,7 +276,7 @@ export class Reader {
 			}
 
 			clearTimeout(timeout);
-			if (opts && opts.maxsize && tmps.size > opts.maxsize) {
+			if (opts?.maxsize && tmps.size > opts.maxsize) {
 				this.error = ReachMaxSizeError;
 				this.reject(this.error);
 				return;
@@ -287,7 +287,7 @@ export class Reader {
 
 	async readline(opts?: ReadLineOptions): Promise<Buffer> {
 		const line = await this.readuntil("\n", opts);
-		if (!!!opts?.noendl) return line;
+		if (!(opts?.noendl)) return line;
 
 		const endl = opts?.endl || ENDL;
 		if (endl.length > line.length) return line;

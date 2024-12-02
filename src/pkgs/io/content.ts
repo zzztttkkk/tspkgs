@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { ismain } from "../internal/index.js";
 
 export function content(fp: string, encoding: BufferEncoding): Promise<string>;

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { IsClass } from "./classes.js";
-import { inspect } from "util";
+import { inspect } from "node:util";
 import { tspkgs } from "../internal/hole.js";
 import type { IMergeOptions } from "./merge.js";
 
@@ -115,9 +115,7 @@ export class MetaRegister<
 
 			const cls: Function = target.constructor;
 
-			let pm: PropsMetaMap<PropOpts>;
-			pm = this._propsMetaData.get(cls) || new Map();
-
+			const pm: PropsMetaMap<PropOpts> = this._propsMetaData.get(cls) || new Map();
 			let designType = Reflect.getMetadata("design:type", target, key);
 			if (desc) {
 				if (!desc.get) throw new Error(`prop decorator on a method`);
@@ -147,8 +145,7 @@ export class MetaRegister<
 
 			const cls: Function = target.constructor;
 
-			let pm: MethodsMetaMap<MethodOpts, ParamOpts>;
-			pm = this._methodsMetaData.get(cls) || new Map();
+			const pm: MethodsMetaMap<MethodOpts, ParamOpts> = this._methodsMetaData.get(cls) || new Map();
 
 			let methodinfo = pm.get(key as string);
 			if (!methodinfo) methodinfo = new MethodInfo();
@@ -177,8 +174,7 @@ export class MetaRegister<
 			}
 
 			const cls: Function = target.constructor;
-			let pm: MethodsMetaMap<MethodOpts, ParamOpts>;
-			pm = this._methodsMetaData.get(cls) || new Map();
+			const pm: MethodsMetaMap<MethodOpts, ParamOpts> = this._methodsMetaData.get(cls) || new Map();
 
 			let methodinfo = pm.get(key as string);
 			if (!methodinfo) methodinfo = new MethodInfo();
@@ -216,9 +212,9 @@ export class ContainerType {
 
 export type TypeValue = ContainerType | Function;
 
-export class ArrayType extends ContainerType {}
+export class ArrayType extends ContainerType { }
 
-export class SetType extends ContainerType {}
+export class SetType extends ContainerType { }
 
 export class MapType extends ContainerType {
 	public readonly keytype: TypeValue;

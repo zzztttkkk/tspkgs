@@ -1,7 +1,7 @@
-import { AsyncLocalStorage } from "async_hooks";
-import { Appender } from "./appender.js";
-import { Item, Level } from "./item.js";
-import { Renderer } from "./renderer.js";
+import { AsyncLocalStorage } from "node:async_hooks";
+import type { Appender } from "./appender.js";
+import { type Item, Level } from "./item.js";
+import type { Renderer } from "./renderer.js";
 
 const AllMetaStores = [] as AsyncLocalStorage<{ [k: string]: any }>[];
 

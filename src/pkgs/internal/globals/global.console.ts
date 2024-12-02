@@ -4,6 +4,6 @@ declare global {
 	}
 }
 
-(console as any).json = function (v: any) {
+(console as any).json = (v: any) => {
 	console.log(JSON.stringify(v, null, 2));
 };

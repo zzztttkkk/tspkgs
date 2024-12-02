@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import { Item } from "./item.js";
+import type { Item } from "./item.js";
 
 export interface Renderer {
 	render(item: Item): string;
@@ -16,29 +16,27 @@ export class SimpleLineRenderer implements Renderer {
 				let meta = "";
 				if (item.meta) {
 					const metabuf = [] as string[];
-					Object.entries(item.meta).forEach(([k, v]) =>
-						metabuf.push(`${k}=${JSON.stringify(v)}`),
-					);
+					for (const [k, v] of Object.entries(item.meta)) {
+						metabuf.push(`${k}=${JSON.stringify(v)}`);
+					}
 					meta = `[${metabuf.join("; ")}]`;
 				}
 				const times = DateTime.fromMillis(item.at).toFormat(timelayout);
-				return `[${LevelStrings[item.level]}] [${times}] ${meta} Message: ${
-					item.msg
-				}; Args: ${item.args}`;
+				return `[${LevelStrings[item.level]}] [${times}] ${meta} Message: ${item.msg
+					}; Args: ${item.args}`;
 			};
 		} else {
 			this._render_fn = (item: Item) => {
 				let meta = "";
 				if (item.meta) {
 					const metabuf = [] as string[];
-					Object.entries(item.meta).forEach(([k, v]) =>
-						metabuf.push(`${k}=${JSON.stringify(v)}`),
-					);
+					for (const [k, v] of Object.entries(item.meta)) {
+						metabuf.push(`${k}=${JSON.stringify(v)}`)
+					}
 					meta = `[${metabuf.join("; ")}]`;
 				}
-				return `[${LevelStrings[item.level]}] [${item.at}] ${meta} Message: ${
-					item.msg
-				}; Args: ${item.args}`;
+				return `[${LevelStrings[item.level]}] [${item.at}] ${meta} Message: ${item.msg
+					}; Args: ${item.args}`;
 			};
 		}
 	}

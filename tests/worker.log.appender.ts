@@ -1,4 +1,4 @@
-import { isMainThread } from "worker_threads";
+import { isMainThread } from "node:worker_threads";
 import { threadinds } from "../src/index.js";
 import { AsyncFileAppender } from "../src/pkgs/logging/fs.appender.js";
 import { source } from "../src/pkgs/internal/index.js";

@@ -1,4 +1,4 @@
-import { inspect } from "util";
+import { inspect } from "node:util";
 import { Stack } from "../internal/index.js";
 import { Lock } from "./lock.js";
 
@@ -31,9 +31,8 @@ export class RwLock {
 	}
 
 	[inspect.custom]() {
-		return `[RwLock w: ${this.writing}, r: ${this.readings}, waiters: ${
-			this.waiters.depth
-		}, internal: ${inspect(this.lock)}]`;
+		return `[RwLock w: ${this.writing}, r: ${this.readings}, waiters: ${this.waiters.depth
+			}, internal: ${inspect(this.lock)}]`;
 	}
 
 	private async releasew() {

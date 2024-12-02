@@ -1,8 +1,8 @@
 import { sleep } from "../src/index.js";
-import { Appender, FuncAppender } from "../src/pkgs/logging/appender.js";
-import { Item } from "../src/pkgs/logging/item.js";
+import { type Appender, FuncAppender } from "../src/pkgs/logging/appender.js";
+import type { Item } from "../src/pkgs/logging/item.js";
 import { AbsDispatcher, With } from "../src/pkgs/logging/logger.js";
-import { JSONRenderer, Renderer } from "../src/pkgs/logging/renderer.js";
+import { JSONRenderer, type Renderer } from "../src/pkgs/logging/renderer.js";
 import { append, close } from "./worker.log.appender.js";
 
 process.RegisterBeforeShutdownAction(async () => {

@@ -17,7 +17,7 @@ export class Stack<T> {
 	}
 
 	empty(): boolean {
-		return this._depth == 0;
+		return this._depth === 0;
 	}
 
 	peek(): T {

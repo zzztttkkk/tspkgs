@@ -1,5 +1,5 @@
 import { lines } from "../io/index.js";
-import fs from "fs/promises";
+import fs from "node:fs/promises";
 
 function parse_line(line: string, map: Map<string, string>) {
 	if (line.length < 1 || line.startsWith("//")) return;

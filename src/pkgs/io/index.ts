@@ -1,8 +1,8 @@
 import { content } from "./content.js";
 import { Reader } from "./reader.js";
 import * as glob from "glob";
-import url from "url";
-import fs from "fs/promises";
+import url from "node:url";
+import fs from "node:fs/promises";
 import { lines } from "./lines.js";
 
 export { content, Reader, lines };

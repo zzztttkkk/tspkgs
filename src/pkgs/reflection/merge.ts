@@ -2,9 +2,9 @@ import { tspkgs } from "../internal/hole.js";
 import { __bind } from "./bind.js";
 import { classof } from "./classes.js";
 import {
-	MetaRegister,
-	PropInfo,
-	TypeValue,
+	type MetaRegister,
+	type PropInfo,
+	type TypeValue,
 	metainfo,
 } from "./meta_register.js";
 
@@ -45,7 +45,7 @@ function _merge<T, P extends IMergePropOpts>(
 			continue;
 		}
 		const sv = (src as any)[k];
-		if (typeof sv == "undefined") {
+		if (typeof sv === "undefined") {
 			continue;
 		}
 
@@ -54,14 +54,14 @@ function _merge<T, P extends IMergePropOpts>(
 
 		const dv = (dest as any)[k];
 
-		if (typeof dv == "undefined") {
+		if (typeof dv === "undefined") {
 			(dest as any)[k] = stv;
 			continue;
 		}
 
 		let overwrite = opts?.overwrite;
 
-		if (typeof overwrite == "function") {
+		if (typeof overwrite === "function") {
 			overwrite = overwrite(dv, sv, cls, k, p);
 		}
 		if (!overwrite) continue;

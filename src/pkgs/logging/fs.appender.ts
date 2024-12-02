@@ -1,7 +1,7 @@
-import fs from "fs";
-import path from "path";
-import { Appender } from "./appender.js";
-import { FileHandle } from "fs/promises";
+import fs from "node:fs";
+import path from "node:path";
+import type { FileHandle } from "node:fs/promises";
+import type { Appender } from "./appender.js";
 import { DateTime } from "luxon";
 
 export type RotationKind = "daily" | "hourly" | "minutely";
@@ -15,12 +15,12 @@ export class AsyncFileAppender implements Appender {
 
 	private bufsize: number;
 	private rotation: RotationKind | undefined;
-	private rotationbeginat: number = 0;
-	private rotationendat: number = 0;
+	private rotationbeginat = 0;
+	private rotationendat = 0;
 
 	private fd: FileHandle | null = null;
 	private buf: string[] = [];
-	private currentbufsize: number = 0;
+	private currentbufsize = 0;
 	private closed = false;
 
 	constructor(
@@ -74,16 +74,22 @@ export class AsyncFileAppender implements Appender {
 		}
 		this.fd = null;
 
-		let dv: string = "";
+		let dv = "";
 		switch (this.rotation) {
 			case "daily": {
 				dv = DateTime.fromMillis(this.rotationbeginat).toFormat("yyyyMMdd");
+				break;
 			}
 			case "hourly": {
 				dv = DateTime.fromMillis(this.rotationbeginat).toFormat("yyyyMMddHH");
+				break;
 			}
 			case "minutely": {
 				dv = DateTime.fromMillis(this.rotationbeginat).toFormat("yyyyMMddHHmm");
+				break;
+			}
+			default: {
+				throw new Error("unreachable");
 			}
 		}
 
@@ -98,7 +104,7 @@ export class AsyncFileAppender implements Appender {
 	}
 
 	private async flush() {
-		if (this.buf.length == 0) return;
+		if (this.buf.length === 0) return;
 		if (this.fd == null) {
 			this.fd = await fs.promises.open(this.fp, "a+");
 		}

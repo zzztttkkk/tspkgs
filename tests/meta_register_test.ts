@@ -1,4 +1,4 @@
-import { inspect } from "util";
+import { inspect } from "node:util";
 import { UniqueId } from "../src/index.js";
 import { reflection } from "../src/index.js";
 
@@ -38,7 +38,7 @@ class A {
 	map?: Map<string, Map<number, boolean>>;
 
 	@method()
-	yy(@EnvRegister.param() x: string) {}
+	yy(@EnvRegister.param() x: string) { }
 }
 
 const meta = reflection.metainfo(EnvRegister, A);
@@ -49,7 +49,7 @@ if (props) {
 	}
 }
 
-console.log(UniqueId(meta) === UniqueId(meta));
+console.log(UniqueId(meta), UniqueId(meta));
 
 console.log(transform("1240", Number, { radix: 16 }));
 

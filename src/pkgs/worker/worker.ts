@@ -1,5 +1,5 @@
-import { cpus } from "os";
-import { Worker, isMainThread, parentPort, threadId } from "worker_threads";
+import { cpus } from "node:os";
+import { Worker, isMainThread, parentPort, threadId } from "node:worker_threads";
 
 interface Msg<T> {
 	id: bigint;
@@ -119,8 +119,8 @@ export class TypedWorker<Input, Output> {
 }
 
 export enum TypedWorkerPoolDispatchPolicy {
-	Random,
-	Blance,
+	Random = 0,
+	Blance = 1,
 }
 
 export class TypedWorkerPool<Input, Output> {
@@ -188,13 +188,13 @@ export function exec<Input, Output>(
 
 		if (msg.timeouted) {
 			const hs = hooksMap.get(msgId);
-			if (hs && hs.Timeout) hs.Timeout();
+			if (hs?.Timeout) hs.Timeout();
 			return;
 		}
 
 		if (msg.canceled) {
 			const hs = hooksMap.get(msgId);
-			if (hs && hs.Cancele) hs.Cancele();
+			if (hs?.Cancele) hs.Cancele();
 			return;
 		}
 

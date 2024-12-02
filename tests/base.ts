@@ -1,6 +1,6 @@
-import assert from "assert";
+import assert from "node:assert";
 import "../src/index.js";
-import { inspect } from "util";
+import { inspect } from "node:util";
 export function equal(a: any, b: any) {
 	assert.strictEqual(a, b);
 }
@@ -59,7 +59,7 @@ class Point {
 				throw new Error(`Cannot transform ${v} to Point`);
 			}
 			case "object": {
-				if (Array.isArray(v) && v.length == 2) {
+				if (Array.isArray(v) && v.length === 2) {
 					return new Point(transform(v[0], Number), transform(v[1], Number));
 				}
 
@@ -76,7 +76,7 @@ class Point {
 	}
 
 	distance(v: Point): number {
-		return Math.sqrt(Math.pow(this.#x - v.#x, 2) + Math.pow(this.#y - v.#y, 2));
+		return Math.sqrt((this.#x - v.#x) ** 2 + (this.#y - v.#y) ** 2);
 	}
 }
 

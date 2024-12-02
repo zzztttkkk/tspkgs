@@ -8,7 +8,7 @@ export async function* lines(
 	},
 ): AsyncGenerator<string, void, undefined> {
 	const remains: Buffer[] = [];
-	let remainsize: number = 0;
+	let remainsize = 0;
 
 	for await (const tmp of rs as {
 		[Symbol.asyncIterator](): AsyncIterableIterator<Buffer>;

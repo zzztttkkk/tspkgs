@@ -1,4 +1,4 @@
-import { inspect } from "util";
+import { inspect } from "node:util";
 import { ismain, sleep } from "../internal/index.js";
 import { Stack } from "../internal/stack.js";
 

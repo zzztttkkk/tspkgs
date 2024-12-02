@@ -1,5 +1,5 @@
-import * as path from "path";
-import * as url from "url";
+import * as path from "node:path";
+import * as url from "node:url";
 
 export class Hole<T> {
 	private static insmap = new Map<string, Hole<any>>();
