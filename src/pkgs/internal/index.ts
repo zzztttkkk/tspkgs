@@ -3,12 +3,12 @@ import "./globals/index.js"; // must be first
 import path from "node:path";
 import url from "node:url";
 import { Stack } from "./stack.js";
-import { Hole } from "./hole.js";
+import { Delgate } from "./delgate.js";
 import { inspect } from "node:util";
 import * as __ from "./__/index.js";
 import * as fs from "node:fs/promises";
 
-export { Stack, Hole, __ };
+export { Stack, Delgate, __ };
 
 const ProcessEntry = path.resolve(process.argv[1]);
 export function ismain(meta: ImportMeta): boolean {

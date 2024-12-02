@@ -1,4 +1,4 @@
-import { tspkgs } from "../internal/hole.js";
+import { tspkgs } from "../internal/delgate.js";
 import { __bind } from "./bind.js";
 import { classof } from "./classes.js";
 import {

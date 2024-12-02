@@ -7,7 +7,7 @@ import {
 	type TypeValue,
 	metainfo,
 } from "./meta_register.js";
-import { tspkgs } from "../internal/hole.js";
+import { tspkgs } from "../internal/delgate.js";
 
 export function __bind(typev: TypeValue, obj: any, hint?: any): any {
 	if (typeof typev === "function") return transform(obj, typev as any, hint);
