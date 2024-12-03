@@ -22,7 +22,7 @@ class DelgateCls<T extends Function> {
 		return this.val;
 	}
 
-	func(): T & { fill: (fn: T) => void; } {
+	get func(): T & { fill: (fn: T) => void; } {
 		const fnc = (...args: any) => this.expose()(...args);
 		Object.defineProperty(
 			fnc,
@@ -38,11 +38,11 @@ class DelgateCls<T extends Function> {
 
 export namespace tspkgs {
 	export const holes = {
-		ReflectionRegisterBind: new DelgateCls<(...args: any[]) => any>(import.meta, "bind").func(),
-		ReflectionRegisterMerge: new DelgateCls<(...args: any[]) => any>(import.meta, "merge").func(),
+		ReflectionRegisterBind: new DelgateCls<(...args: any[]) => any>(import.meta, "bind").func,
+		ReflectionRegisterMerge: new DelgateCls<(...args: any[]) => any>(import.meta, "merge").func,
 	};
 }
 
 export function Delgate<T extends Function>(meta: ImportMeta, name: string): T {
-	return new DelgateCls<T>(meta, name).func();
+	return new DelgateCls<T>(meta, name).func;
 }
