@@ -1,4 +1,4 @@
-import { tspkgs } from "../internal/delgate.js";
+import { tspkgs } from "../internal/delegate.js";
 import { __bind } from "./bind.js";
 import { classof } from "./classes.js";
 import {
@@ -81,4 +81,4 @@ export function merge<T, P extends IMergePropOpts>(
 	return dest;
 }
 
-tspkgs.holes.ReflectionRegisterMerge.fill(merge);
+tspkgs.delegates.ReflectionRegisterMerge.fill(merge);

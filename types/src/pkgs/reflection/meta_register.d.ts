@@ -1,6 +1,7 @@
 /// <reference types="node" resolution-mode="require"/>
 import "reflect-metadata";
-import { inspect } from "util";
+import { inspect } from "node:util";
+import type { IMergeOptions } from "./merge.js";
 export declare class PropInfo<T> {
     readonly designtype: any;
     readonly accessorstatus?: {
@@ -10,16 +11,25 @@ export declare class PropInfo<T> {
     readonly opts?: T;
     constructor(designtype: any, opts?: T);
 }
+declare class MethodInfo<T, A> {
+    paramtypes: any[] | undefined;
+    returntype: any | undefined;
+    opts?: T;
+    readonly paramopts: Map<number, A | undefined>;
+    constructor();
+}
 type PropsMetaMap<T> = Map<string, PropInfo<T>>;
-declare class MetaInfo<ClsOpts, PropOpts, MethodOpts> {
+type MethodsMetaMap<T, A> = Map<string, MethodInfo<T, A>>;
+declare class MetaInfo<ClsOpts, PropOpts, MethodOpts, ParamOpts> {
     #private;
-    constructor(register: MetaRegister<ClsOpts, PropOpts, MethodOpts>, cls: Function);
+    constructor(register: MetaRegister<ClsOpts, PropOpts, MethodOpts, ParamOpts>, cls: Function);
     cls(): ClsOpts | undefined;
     props(): PropsMetaMap<PropOpts> | undefined;
+    methods(): MethodsMetaMap<MethodOpts, ParamOpts> | undefined;
     prop(name: string): PropInfo<PropOpts> | undefined;
 }
-export declare function metainfo<ClsOpts, PropOpts, MethodOpts>(register: MetaRegister<ClsOpts, PropOpts, MethodOpts>, cls: Function): MetaInfo<ClsOpts, PropOpts, MethodOpts>;
-export declare class MetaRegister<ClsOpts, PropOpts, MethodOpts> {
+export declare function metainfo<ClsOpts, PropOpts, MethodOpts, ParamOpts>(register: MetaRegister<ClsOpts, PropOpts, MethodOpts, ParamOpts>, cls: Function): MetaInfo<ClsOpts, PropOpts, MethodOpts, ParamOpts>;
+export declare class MetaRegister<ClsOpts = unknown, PropOpts = unknown, MethodOpts = unknown, ParamOpts = unknown> {
     readonly name: symbol;
     private readonly _clsMetaData;
     private readonly _propsMetaData;
@@ -28,7 +38,9 @@ export declare class MetaRegister<ClsOpts, PropOpts, MethodOpts> {
     cls(opts?: ClsOpts): ClassDecorator;
     prop(opts?: PropOpts): PropertyDecorator;
     method(opts?: MethodOpts): MethodDecorator;
-    param(): ParameterDecorator;
+    param(opts?: ParamOpts): ParameterDecorator;
+    bind<T>(cls: ClassOf<T>, src: any): T;
+    merge<T>(dest: T, srcs: any[], opts?: IMergeOptions<PropOpts>): any;
 }
 export declare class ContainerType {
     readonly eletype: TypeValue;

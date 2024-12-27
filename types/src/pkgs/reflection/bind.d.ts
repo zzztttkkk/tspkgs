@@ -1,11 +1,7 @@
-import { MetaRegister, PropInfo, TypeValue } from "./meta_register.js";
-type SrcPeekFunc<P> = (src: any, key: string, info: PropInfo<P>) => any;
+import { type MetaRegister, type TypeValue } from "./meta_register.js";
+export declare function __bind(typev: TypeValue, obj: any, hint?: any): any;
 export interface IBindPropOpts {
     type?: TypeValue;
     bindhint?: any;
 }
-export declare function bind<T, P extends IBindPropOpts>(register: MetaRegister<unknown, P, unknown>, cls: ClassOf<T>, src: any, opts?: {
-    proppeek?: SrcPeekFunc<P>;
-    constructorargs?: any[];
-}): T;
-export {};
+export declare function bind<T, P extends IBindPropOpts>(register: MetaRegister<unknown, P, unknown>, cls: ClassOf<T>, src: any): T;

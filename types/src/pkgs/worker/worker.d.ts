@@ -17,6 +17,7 @@ export declare class TypedWorker<Input, Output> {
     cancel(idx: bigint): void;
     get busycount(): number;
     get idle(): boolean;
+    close(): Promise<void>;
 }
 export declare enum TypedWorkerPoolDispatchPolicy {
     Random = 0,
@@ -32,5 +33,8 @@ export interface Hooks {
     OnCanceled: (cb: () => void) => void;
     OnTimeouted: (cb: () => void) => void;
 }
-export declare function Work<Input, Output>(fn: (i: Input, hooks: Hooks) => Promise<Output> | Output): void;
+export declare function exec<Input, Output>(fn: (i: Input, hooks: Hooks) => Promise<Output> | Output): void;
+export declare function ismain(): boolean;
+export declare function id(): number;
+export declare const CPU_NUMS: number;
 export {};

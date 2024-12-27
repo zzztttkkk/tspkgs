@@ -5,10 +5,16 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Tests Program",
-			"skipFiles": ["<node_internals>/**"],
-			"program": "./build/tests/${fileBasenameNoExtension}.js",
-			"outFiles": ["${workspaceFolder}/**/*.js"],
-			"runtimeArgs": ["--enable-source-maps"]
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"program": "./build/${relativeFileDirname}/${fileBasenameNoExtension}.js",
+			"outFiles": [
+				"${workspaceFolder}/**/*.js"
+			],
+			"runtimeArgs": [
+				"--enable-source-maps"
+			]
 		}
 	]
 }

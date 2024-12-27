@@ -1,4 +1,4 @@
-import "./global.types.js";
+import "./types.js";
 
 const BeforeExitActions = [] as Action[];
 

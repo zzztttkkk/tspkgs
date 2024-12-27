@@ -1,5 +1,5 @@
 /// <reference types="node" resolution-mode="require"/>
-import { inspect } from "util";
+import { inspect } from "node:util";
 declare class ReleaseHandle implements AsyncDisposable {
     #private;
     constructor(v: () => Promise<void>);

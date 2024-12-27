@@ -1,9 +1,11 @@
+import "./globals/index.js";
 import { Stack } from "./stack.js";
-import { Hole } from "./hole.js";
+import { Delegate } from "./delegate.js";
 import * as __ from "./__/index.js";
-export { Stack, Hole, __ };
+export { Stack, Delegate, __ };
 export declare function ismain(meta: ImportMeta): boolean;
 export declare function source(meta: ImportMeta): string;
 export declare function sourcedir(meta: ImportMeta): string;
-export declare function sleep(ms: number): Promise<void>;
+export declare function projectroot(meta: ImportMeta): Promise<string>;
+export declare function sleep<T>(ms: number, v?: T): Promise<T | undefined>;
 export declare function UniqueId(v: object): BigInt;

@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { IsClass } from "./classes.js";
 import { inspect } from "node:util";
-import { tspkgs } from "../internal/delgate.js";
+import { tspkgs } from "../internal/delegate.js";
 import type { IMergeOptions } from "./merge.js";
 
 export class PropInfo<T> {
@@ -74,8 +74,8 @@ export function metainfo<ClsOpts, PropOpts, MethodOpts, ParamOpts>(
 	return new MetaInfo(register, cls);
 }
 
-const ReflectionRegisterBindHole = tspkgs.holes.ReflectionRegisterBind;
-const ReflectionRegisterMergeHole = tspkgs.holes.ReflectionRegisterMerge;
+const ReflectionRegisterBindHole = tspkgs.delegates.ReflectionRegisterBind;
+const ReflectionRegisterMergeHole = tspkgs.delegates.ReflectionRegisterMerge;
 
 export class MetaRegister<
 	ClsOpts = unknown,

@@ -7,7 +7,7 @@ import * as io from "./pkgs/io/index.js";
 import * as env from "./pkgs/env/index.js";
 import * as reflection from "./pkgs/reflection/index.js";
 
-import { Delgate, sleep, ismain, UniqueId, __ } from "./pkgs/internal/index.js";
+import { Delegate, sleep, ismain, UniqueId, __ } from "./pkgs/internal/index.js";
 import * as threadinds from "./pkgs/worker/worker.js";
 import { TimeLogger } from "./pkgs/timelogger.js";
 import { enumerate, asyncenumerate } from "./pkgs/internal/enumerate.js";
@@ -16,7 +16,7 @@ export {
 	__,
 	sync,
 	io,
-	Delgate,
+	Delegate,
 	sleep,
 	env,
 	ismain,
